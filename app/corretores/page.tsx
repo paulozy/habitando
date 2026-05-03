@@ -98,7 +98,7 @@ function Hero() {
           <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-[13px] text-[#bcc6d0]">
             <Stat label="White-label" sub="Sua marca, sua URL" />
             <Stat label="PDF profissional" sub="Mande pelo WhatsApp" />
-            <Stat label="Leads automáticos" sub="Direto no seu CRM" />
+            <Stat label="Leads automáticos" sub="Direto no seu WhatsApp" />
           </div>
         </div>
       </div>
@@ -212,7 +212,7 @@ function BeneficiosSection() {
     {
       icon: "🎯",
       title: "Captura de leads embutida",
-      desc: "Cliente preenche WhatsApp/email no fim da simulação. Lead vai direto pro seu CRM (Vista, JetImob, ImoView ou planilha) com os dados que ele simulou.",
+      desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
     },
     {
       icon: "🏢",
@@ -320,7 +320,7 @@ function PricingSection() {
               "Tudo do plano Imobiliária",
               "Usuários ilimitados",
               "Permissões por equipe",
-              "Integração com CRM (Vista, JetImob)",
+              "Branding avançado (domínio + tema completo)",
               "Suporte prioritário",
             ]}
             highlight={false}
@@ -552,11 +552,16 @@ function FAQSection() {
             </p>
           </FaqItem>
 
-          <FaqItem q="Tenho que migrar do meu CRM atual?">
+          <FaqItem q="Como recebo os leads?">
             <p>
-              Não. A integração é via webhook ou export CSV (planos Imobiliária+
-              têm conexão direta com Vista, JetImob e ImoView). Você continua
-              usando o que já tem.
+              Você recebe uma notificação por WhatsApp/email assim que o cliente
+              termina a simulação e deixa contato. Os dados ficam num painel
+              simples dentro da sua área — você pode exportar em planilha (CSV)
+              quando quiser.
+            </p>
+            <p>
+              Sem integração obrigatória com nenhuma ferramenta externa. Você
+              continua usando o que já tem para gerenciar contatos.
             </p>
           </FaqItem>
 
