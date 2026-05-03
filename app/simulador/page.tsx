@@ -41,6 +41,7 @@ import {
 import { ScenarioBar } from "@/components/scenarios/scenario-bar";
 import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
 import { ShareControls } from "@/components/share/share-controls";
+import { DevolverButton } from "@/components/share/devolver-button";
 import { ScenarioPersist } from "@/lib/storage/persist";
 
 export default function Home() {
@@ -84,7 +85,8 @@ export default function Home() {
     <TooltipProvider>
     <FormProvider {...form}>
       <ScenarioPersist />
-      <div className="flex flex-col min-h-full">
+      <DevolverButton variant="sticky" />
+      <div className="flex flex-col min-h-full pb-20 md:pb-0">
         <Header
           onResetAtivo={() => {
             const cfg = defaultConfig();
@@ -216,7 +218,10 @@ function Header({
             </p>
           </div>
           <div className="flex flex-col gap-3 items-end">
-            <ShareControls />
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <DevolverButton />
+              <ShareControls />
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="ghost"

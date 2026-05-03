@@ -7,6 +7,7 @@ import {
   migrarPayload,
 } from "@/lib/url-state";
 import { useScenariosStore } from "./use-scenarios-store";
+import { useCorretorStore } from "./use-corretor-store";
 
 const KEY = "can-i-buy:scenarios";
 
@@ -29,6 +30,11 @@ export function ScenarioPersist() {
       const dec = decodeScenarios(s);
       if (dec.ok && dec.scenarios) {
         useScenariosStore.getState().replaceAll(dec.scenarios);
+        // Se o link traz identidade de corretor, salva como "received"
+        // para o cliente poder devolver com a mesma identidade.
+        if (dec.corretor) {
+          useCorretorStore.getState().setReceived(dec.corretor);
+        }
         // Limpa o param para não sobrescrever futuras edições
         url.searchParams.delete("s");
         window.history.replaceState({}, "", url.toString());

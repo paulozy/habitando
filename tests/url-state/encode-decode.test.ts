@@ -44,6 +44,62 @@ describe("url-state encode/decode", () => {
     const dec = decodeScenarios(fake);
     expect(dec.ok).toBe(false);
   });
+
+  it("encode/decode preserva identidade do corretor quando passada", () => {
+    const corretor = { nome: "João Silva", whatsapp: "5511999998888" };
+    const encoded = encodeScenarios(scenarios, corretor);
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.corretor).toEqual(corretor);
+  });
+
+  it("decode sem corretor retorna corretor undefined", () => {
+    const encoded = encodeScenarios(scenarios);
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.corretor).toBeUndefined();
+  });
+
+  it("decode rejeita corretor com WhatsApp em formato inválido", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const payload = {
+      v: 6,
+      scenarios: [
+        {
+          id: "a",
+          label: scenarios[0].label,
+          color: scenarios[0].color,
+          config: scenarios[0].config,
+        },
+      ],
+      corretor: { nome: "João", whatsapp: "(11) 99999-8888" }, // tem caracteres não-dígito
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(false);
+  });
+});
+
+describe("url-state migrator v5→v6", () => {
+  it("payload v5 (sem corretor) é aceito como v6 após migração", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const v5Payload = {
+      v: 5,
+      scenarios: [
+        {
+          id: "a",
+          label: scenarios[0].label,
+          color: scenarios[0].color,
+          config: scenarios[0].config,
+        },
+      ],
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(v5Payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.scenarios).toHaveLength(1);
+    expect(dec.corretor).toBeUndefined();
+  });
 });
 
 describe("url-state migrator v1→v2", () => {

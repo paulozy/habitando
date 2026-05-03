@@ -25,8 +25,12 @@ import type { Scenario } from "@/lib/storage/use-scenarios-store";
  *   - entrada: drop valor_entrada_total (vira derivado)
  *   - entrada.anuais: garante max 1 (mantém o primeiro)
  *   - entrada.ato: adiciona parcelas: 1, primeiro_mes: 1 (preserva comportamento "ato 1x m1")
+ *
+ * v5 → v6 (compartilhamento corretor↔cliente):
+ *   - payload ganha campo opcional `corretor: { nome, whatsapp }`
+ *   - migrator é noop: campo opcional, payloads antigos continuam válidos
  */
-export const LATEST_SCHEMA_VERSION = 5;
+export const LATEST_SCHEMA_VERSION = 6;
 
 const ScenarioSchema = z.object({
   id: z.string(),
@@ -35,9 +39,17 @@ const ScenarioSchema = z.object({
   config: SimulacaoConfigSchema,
 });
 
+export const CorretorIdentitySchema = z.object({
+  nome: z.string().min(1).max(60),
+  whatsapp: z.string().regex(/^\d{10,15}$/, "WhatsApp deve conter apenas dígitos com DDI (ex: 5511999999999)"),
+});
+
+export type CorretorIdentity = z.infer<typeof CorretorIdentitySchema>;
+
 const PayloadSchema = z.object({
   v: z.number().int().positive(),
   scenarios: z.array(ScenarioSchema).min(1),
+  corretor: CorretorIdentitySchema.optional(),
 });
 
 export type SharePayload = z.infer<typeof PayloadSchema>;
@@ -63,6 +75,10 @@ const migrators: Record<number, (data: any) => any> = {
     const next = structuredClone(data);
     next.scenarios = (data.scenarios ?? []).map((s: any) => migrarCenarioV4(s));
     return next;
+  },
+  5: (data: any) => {
+    // v5 → v6: nada a transformar, campo `corretor` é opcional.
+    return structuredClone(data);
   },
 };
 
@@ -203,8 +219,15 @@ function migrarCenarioV1(s: any): any {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export function encodeScenarios(scenarios: Scenario[]): string {
-  const payload: SharePayload = { v: LATEST_SCHEMA_VERSION, scenarios };
+export function encodeScenarios(
+  scenarios: Scenario[],
+  corretor?: CorretorIdentity,
+): string {
+  const payload: SharePayload = {
+    v: LATEST_SCHEMA_VERSION,
+    scenarios,
+    ...(corretor ? { corretor } : {}),
+  };
   const json = JSON.stringify(payload);
   return compressToEncodedURIComponent(json);
 }
@@ -212,6 +235,7 @@ export function encodeScenarios(scenarios: Scenario[]): string {
 export interface DecodeResult {
   ok: boolean;
   scenarios?: Scenario[];
+  corretor?: CorretorIdentity;
   error?: string;
 }
 
@@ -234,7 +258,11 @@ export function decodeScenarios(s: string): DecodeResult {
         error: `Formato inválido: ${parsed.error.issues[0]?.message ?? "erro de schema"}`,
       };
     }
-    return { ok: true, scenarios: parsed.data.scenarios };
+    return {
+      ok: true,
+      scenarios: parsed.data.scenarios,
+      corretor: parsed.data.corretor,
+    };
   } catch (e) {
     return {
       ok: false,
@@ -265,7 +293,11 @@ export function migrarPayload(raw: unknown): DecodeResult {
         error: `Formato inválido: ${parsed.error.issues[0]?.message ?? "erro de schema"}`,
       };
     }
-    return { ok: true, scenarios: parsed.data.scenarios };
+    return {
+      ok: true,
+      scenarios: parsed.data.scenarios,
+      corretor: parsed.data.corretor,
+    };
   } catch (e) {
     return {
       ok: false,
@@ -274,9 +306,12 @@ export function migrarPayload(raw: unknown): DecodeResult {
   }
 }
 
-export function buildShareURL(scenarios: Scenario[]): string {
+export function buildShareURL(
+  scenarios: Scenario[],
+  corretor?: CorretorIdentity,
+): string {
   if (typeof window === "undefined") return "";
-  const encoded = encodeScenarios(scenarios);
+  const encoded = encodeScenarios(scenarios, corretor);
   const url = new URL(window.location.href);
   url.search = "";
   url.searchParams.set("s", encoded);
