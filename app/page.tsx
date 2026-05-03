@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Para corretores · feche mais vendas com transparência",
@@ -389,11 +389,10 @@ function PriceCard({
 }) {
   return (
     <div
-      className={`rounded-xl p-6 flex flex-col ${
-        highlight
+      className={`rounded-xl p-6 flex flex-col ${highlight
           ? "bg-ink text-white border-2 border-accent shadow-xl scale-[1.02]"
           : "bg-card border border-border"
-      }`}
+        }`}
     >
       {highlight && (
         <div className="text-[10px] font-mono tracking-[0.18em] uppercase text-accent mb-2">
@@ -401,32 +400,28 @@ function PriceCard({
         </div>
       )}
       <div
-        className={`font-serif text-2xl mb-1 ${
-          highlight ? "text-white" : "text-ink"
-        }`}
+        className={`font-serif text-2xl mb-1 ${highlight ? "text-white" : "text-ink"
+          }`}
       >
         {tier}
       </div>
       <div
-        className={`text-[12px] mb-5 ${
-          highlight ? "text-[#8fa3b8]" : "text-ink-muted"
-        }`}
+        className={`text-[12px] mb-5 ${highlight ? "text-[#8fa3b8]" : "text-ink-muted"
+          }`}
       >
         {target}
       </div>
       <div className="mb-1">
         <span
-          className={`font-serif text-3xl ${
-            highlight ? "text-accent" : "text-ink"
-          }`}
+          className={`font-serif text-3xl ${highlight ? "text-accent" : "text-ink"
+            }`}
         >
           {preco}
         </span>
       </div>
       <div
-        className={`text-[12.5px] mb-6 ${
-          highlight ? "text-[#bcc6d0]" : "text-ink-muted"
-        }`}
+        className={`text-[12.5px] mb-6 ${highlight ? "text-[#bcc6d0]" : "text-ink-muted"
+          }`}
       >
         {ciclo}
       </div>
@@ -434,9 +429,8 @@ function PriceCard({
         {features.map((f) => (
           <li
             key={f}
-            className={`text-[13.5px] leading-relaxed flex items-start gap-2 ${
-              highlight ? "text-[#dcdfe3]" : "text-ink-soft"
-            }`}
+            className={`text-[13.5px] leading-relaxed flex items-start gap-2 ${highlight ? "text-[#dcdfe3]" : "text-ink-soft"
+              }`}
           >
             <span aria-hidden className="text-accent mt-0.5 shrink-0">
               ✓
@@ -447,11 +441,10 @@ function PriceCard({
       </ul>
       <Link
         href="#waitlist"
-        className={`text-center px-4 py-2.5 rounded-md font-medium text-sm transition-colors ${
-          highlight
+        className={`text-center px-4 py-2.5 rounded-md font-medium text-sm transition-colors ${highlight
             ? "bg-accent text-ink hover:bg-accent/90"
             : "bg-ink text-white hover:bg-ink-soft"
-        }`}
+          }`}
       >
         Entrar na lista
       </Link>
@@ -524,9 +517,8 @@ function ColumnCompare({
   return (
     <div>
       <div
-        className={`font-mono text-[10px] tracking-[0.2em] uppercase mb-4 ${
-          tone === "accent" ? "text-accent" : "text-white/40"
-        }`}
+        className={`font-mono text-[10px] tracking-[0.2em] uppercase mb-4 ${tone === "accent" ? "text-accent" : "text-white/40"
+          }`}
       >
         {titulo}
       </div>
@@ -534,9 +526,8 @@ function ColumnCompare({
         {items.map((it, i) => (
           <li
             key={i}
-            className={`flex gap-3 text-[14.5px] leading-relaxed ${
-              tone === "accent" ? "text-white" : "text-white/50 line-through decoration-white/30"
-            }`}
+            className={`flex gap-3 text-[14.5px] leading-relaxed ${tone === "accent" ? "text-white" : "text-white/50 line-through decoration-white/30"
+              }`}
           >
             <span aria-hidden className="shrink-0 mt-0.5">
               {tone === "accent" ? "✓" : "✗"}
@@ -710,7 +701,7 @@ function CTAFinal() {
           </p>
           <div className="flex flex-col gap-3">
             <a
-              href="https://wa.me/?text=Tenho%20interesse%20no%20Habitando%20%E2%80%94%20simulador%20para%20corretores"
+              href="https://wa.me/5511993235002?text=Tenho%20interesse%20no%20Habitando%20%E2%80%94%20simulador%20para%20corretores"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-green text-white font-semibold px-5 py-3 rounded-md hover:opacity-90 transition-opacity"
@@ -719,7 +710,7 @@ function CTAFinal() {
               Mandar mensagem por WhatsApp
             </a>
             <a
-              href="mailto:contato@habitando.app?subject=Lista%20de%20espera%20%E2%80%94%20Habitando&body=Ol%C3%A1!%20Sou%20corretor%2Fimobili%C3%A1ria%20%E2%80%94%20conta%20um%20pouco%20do%20produto%3F"
+              href="mailto:dev.pa.aabreu18gmail.com?subject=Lista%20de%20espera%20%E2%80%94%20Habitando&body=Ol%C3%A1!%20Sou%20corretor%2Fimobili%C3%A1ria%20%E2%80%94%20conta%20um%20pouco%20do%20produto%3F"
               className="inline-flex items-center justify-center gap-2 bg-card text-ink border border-border font-semibold px-5 py-3 rounded-md hover:bg-paper-alt transition-colors"
             >
               <span aria-hidden>✉️</span>
