@@ -1,0 +1,466 @@
+/* ============================================================
+ *  Relatório PDF — layout A4 + @media print
+ *  Cores forçadas com print-color-adjust:exact pra preservar
+ *  marca/cores ao salvar PDF.
+ * ============================================================ */
+
+.page {
+  max-width: 210mm;
+  min-height: 280mm;
+  margin: 0 auto;
+  padding: 16mm 14mm;
+  background: white;
+  color: var(--color-ink);
+  page-break-after: always;
+}
+
+.page:last-child {
+  page-break-after: auto;
+}
+
+/* ============================================================
+ *  Capa
+ * ============================================================ */
+.capa {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: linear-gradient(180deg, var(--color-ink) 0%, #1a2530 100%);
+  color: white;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  padding: 28mm 18mm;
+  min-height: 280mm;
+}
+
+.capa-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8mm;
+}
+
+.capa-brand .capa-marca {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--color-accent);
+}
+.capa-brand .capa-tagline {
+  font-size: 11px;
+  color: #8fa3b8;
+  margin-top: 2mm;
+}
+
+.capa-titulo h1 {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  line-height: 1.1;
+  margin: 0;
+  color: white;
+}
+.capa-subtitulo {
+  font-size: 14px;
+  color: #bcc6d0;
+  margin-top: 4mm;
+}
+
+.capa-cenarios {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 6mm 8mm;
+}
+.capa-list-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8fa3b8;
+  margin-bottom: 4mm;
+}
+.capa-cenarios ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+}
+.capa-cenarios li {
+  display: flex;
+  align-items: baseline;
+  gap: 4mm;
+  font-size: 13px;
+}
+.capa-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.capa-cenario-nome {
+  font-weight: 600;
+  flex: 1;
+}
+.capa-cenario-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #8fa3b8;
+}
+
+.capa-rodape {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #8fa3b8;
+  letter-spacing: 0.05em;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 4mm;
+}
+
+/* ============================================================
+ *  Página por cenário
+ * ============================================================ */
+.page-cenario {
+  background: white;
+}
+
+.cenario-header {
+  border-top: 6px solid;
+  padding-top: 4mm;
+  margin-bottom: 6mm;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.cenario-titulo {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  margin-bottom: 1mm;
+}
+.cenario-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cenario-titulo h2 {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  margin: 0;
+}
+.cenario-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-muted);
+  letter-spacing: 0.05em;
+}
+
+/* Indicadores em grid */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3mm;
+  margin-bottom: 6mm;
+}
+.indicador {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 3mm 4mm;
+  position: relative;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  page-break-inside: avoid;
+}
+.indicador::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.indicador-blue::before { background: var(--color-blue); }
+.indicador-green::before { background: var(--color-green); }
+.indicador-violet::before { background: var(--color-violet); }
+.indicador-red::before { background: var(--color-red); }
+.indicador-amber::before { background: var(--color-amber); }
+.indicador-label {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: 1mm;
+}
+.indicador-valor {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--color-ink);
+}
+
+/* Resumo da entrada */
+.resumo {
+  margin-bottom: 6mm;
+  page-break-inside: avoid;
+}
+.resumo-titulo {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: 2mm;
+}
+.resumo-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.resumo-tabela td {
+  padding: 1.8mm 0;
+  border-bottom: 1px solid var(--color-paper-alt);
+}
+.resumo-tabela td:last-child {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.resumo-tabela tr.resumo-total td {
+  font-weight: 700;
+  border-top: 1.5px solid var(--color-ink);
+  border-bottom: none;
+  padding-top: 2.5mm;
+  font-size: 13px;
+}
+.resumo-saldo-info {
+  font-size: 10.5px;
+  color: var(--color-ink-soft);
+  margin-top: 3mm;
+  padding: 2.5mm 3mm;
+  background: var(--color-paper-alt);
+  border-radius: 3px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Tabela detalhada */
+.tabela-wrapper {
+  margin-bottom: 6mm;
+}
+.tabela-detalhada {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.tabela-detalhada th {
+  background: var(--color-ink);
+  color: white;
+  padding: 1.5mm 1mm;
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.tabela-detalhada th:first-child,
+.tabela-detalhada th:nth-child(2) {
+  text-align: center;
+}
+.tabela-detalhada td {
+  padding: 1.2mm 1mm;
+  border-bottom: 1px solid var(--color-paper-alt);
+  text-align: right;
+  white-space: nowrap;
+}
+.tabela-detalhada tr {
+  page-break-inside: avoid;
+}
+.tabela-detalhada .t-c {
+  text-align: center;
+  font-weight: 700;
+}
+.tabela-detalhada .t-l {
+  text-align: left;
+  color: var(--color-ink-muted);
+}
+.tabela-detalhada .t-bold {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.tabela-detalhada .text-violet {
+  color: var(--color-violet);
+}
+.tabela-detalhada .row-anual {
+  background: var(--color-amber-soft);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.tabela-detalhada .row-ato {
+  background: var(--color-blue-soft);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Parecer */
+.parecer-block {
+  background: var(--color-paper-alt);
+  padding: 4mm 5mm;
+  border-radius: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  page-break-inside: avoid;
+}
+.parecer-block ul {
+  list-style: none;
+  padding: 0;
+  margin: 2mm 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+}
+.parecer-block li {
+  display: flex;
+  gap: 2.5mm;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+.parecer-icone {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+ *  Página comparativo
+ * ============================================================ */
+.page-comparativo {
+  background: white;
+}
+.comparativo-titulo {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  margin: 0 0 6mm 0;
+  color: var(--color-ink);
+}
+.comparativo-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  margin-bottom: 8mm;
+}
+.comparativo-tabela th,
+.comparativo-tabela td {
+  padding: 2.5mm 3mm;
+  border: 1px solid var(--color-border);
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.comparativo-tabela th {
+  background: var(--color-paper-alt);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.comparativo-tabela th:first-child,
+.comparativo-tabela td.t-l {
+  text-align: left;
+}
+.comparativo-tabela .t-bold {
+  font-weight: 700;
+}
+.comparativo-tabela .winner-cell {
+  background: var(--color-green-soft);
+  font-weight: 700;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.comparativo-resumo {
+  background: var(--color-paper-alt);
+  padding: 4mm 5mm;
+  border-radius: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.comparativo-resumo ul {
+  list-style: none;
+  padding: 0;
+  margin: 2mm 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+}
+.comparativo-resumo li {
+  font-size: 11px;
+}
+
+/* ============================================================
+ *  @media print — comportamento de impressão
+ * ============================================================ */
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .page {
+    margin: 0;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 14mm 12mm;
+    box-shadow: none;
+  }
+
+  .capa {
+    padding: 26mm 16mm;
+  }
+
+  /* Garante quebras de página entre cenários */
+  .page-cenario,
+  .page-comparativo {
+    page-break-before: always;
+  }
+
+  /* Capa nunca tem quebra antes */
+  .capa {
+    page-break-before: avoid;
+  }
+}
+
+/* ============================================================
+ *  Tela (não impressão) — preview do PDF
+ * ============================================================ */
+@media screen {
+  body {
+    background: var(--color-paper-alt) !important;
+  }
+  .page {
+    box-shadow: 0 4px 24px rgba(15, 25, 35, 0.08);
+    margin-top: 6mm;
+    margin-bottom: 6mm;
+  }
+}

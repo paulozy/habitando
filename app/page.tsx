@@ -104,8 +104,42 @@ function Hero() {
             <Stat label="Leads automáticos" sub="Direto no seu WhatsApp" />
           </div>
         </div>
+
+        <DemoVideo />
       </div>
     </header>
+  );
+}
+
+/**
+ * Vídeo demonstrativo que roda na hero da LP.
+ * Quando /public/demo.mp4 não existe, exibe o poster SVG estático.
+ * Substitua o arquivo em web/public/demo.mp4 e o autoplay/loop ativa.
+ */
+function DemoVideo() {
+  return (
+    <div className="relative mt-16 md:mt-20 max-w-[1100px] mx-auto">
+      <div
+        aria-hidden
+        className="absolute -inset-4 bg-accent/10 rounded-2xl blur-2xl"
+      />
+      <div className="relative rounded-xl overflow-hidden border border-white/10 shadow-2xl bg-ink aspect-video">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/demo-poster.svg"
+          className="w-full h-full object-cover"
+          aria-label="Demonstração do Habitando em uso"
+        >
+          <source src="/demo.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div className="mt-3 text-center text-[12px] text-[#8fa3b8]">
+        Veja a ferramenta em uso · 60 segundos
+      </div>
+    </div>
   );
 }
 
