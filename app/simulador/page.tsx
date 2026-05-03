@@ -159,8 +159,10 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         <EntradaSection />
         <CustosCartoriaisSection />
 
-        <SectionHead>Orçamento</SectionHead>
-        <OrcamentoSection />
+        <div id="secao-orcamento" className="scroll-mt-24 space-y-6">
+          <SectionHead>Orçamento</SectionHead>
+          <OrcamentoSection />
+        </div>
 
         <SectionHead>Evolução de obra</SectionHead>
         <EvolucaoSection />

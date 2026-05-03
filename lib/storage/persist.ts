@@ -34,6 +34,13 @@ export function ScenarioPersist() {
         // para o cliente poder devolver com a mesma identidade.
         if (dec.corretor) {
           useCorretorStore.getState().setReceived(dec.corretor);
+          // Cliente recebendo cenário pronto: leva direto pra seção de
+          // renda/gastos, que é o que ele precisa preencher/conferir.
+          // setTimeout pra esperar o React renderizar a seção no DOM.
+          window.setTimeout(() => {
+            const target = document.getElementById("secao-orcamento");
+            target?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 400);
         }
         // Limpa o param para não sobrescrever futuras edições
         url.searchParams.delete("s");
