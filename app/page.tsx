@@ -70,8 +70,14 @@ function Hero() {
 
       <div className="relative max-w-[1200px] mx-auto px-6 md:px-10 py-20 md:py-32">
         <div className="max-w-3xl">
-          <div className="inline-block font-mono text-[11px] tracking-[0.18em] uppercase text-accent border border-accent/40 rounded-full px-3 py-1 mb-6">
-            🤝 Para corretores e imobiliárias
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <span className="inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.15em] uppercase bg-amber-soft text-amber rounded-full px-3 py-1">
+              <span aria-hidden>⚡</span>
+              Em validação · algumas funcionalidades em desenvolvimento
+            </span>
+            <span className="inline-block font-mono text-[11px] tracking-[0.18em] uppercase text-accent border border-accent/40 rounded-full px-3 py-1">
+              🤝 Para corretores e imobiliárias
+            </span>
           </div>
           <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] mb-6">
             Cliente que entende,{" "}
@@ -235,36 +241,61 @@ function CardProblema({
  *  Benefícios
  * ============================================================ */
 function BeneficiosSection() {
-  const beneficios = [
+  const beneficios: {
+    icon: string;
+    title: string;
+    desc: string;
+    status: "ready" | "soon";
+  }[] = [
+    // ── Disponível hoje ──
+    {
+      icon: "🧮",
+      title: "Simulador completo",
+      desc: "INCC sobre saldo devedor, ato parcelado, ITBI, FGTS, anuais. Cálculo mês a mês com tabela detalhada e parecer automático.",
+      status: "ready",
+    },
+    {
+      icon: "🔀",
+      title: "Comparativo entre cenários",
+      desc: "Compare até 4 cenários lado a lado: ato à vista vs parcelado, com ou sem FGTS, prazos diferentes. Cliente vê o que faz mais sentido.",
+      status: "ready",
+    },
+    {
+      icon: "📑",
+      title: "Relatório em PDF",
+      desc: "Gere um PDF com capa, indicadores, tabela mês a mês, gráfico e comparativo. Layout pronto pra mandar pro cliente via WhatsApp.",
+      status: "ready",
+    },
+    // ── Em desenvolvimento ──
     {
       icon: "🎨",
       title: "Sua marca, sua URL",
       desc: "Logo da imobiliária, cores próprias, URL personalizada. O cliente nem percebe que é uma ferramenta externa — vira parte da sua marca.",
-    },
-    {
-      icon: "📑",
-      title: "PDF profissional para WhatsApp",
-      desc: "Gere um relatório com layout limpo: tabela de meses, gráfico, parecer e rodapé com seus dados de contato. Mande direto pro cliente.",
+      status: "soon",
     },
     {
       icon: "🎯",
       title: "Captura de contatos automática",
       desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
+      status: "soon",
     },
     {
       icon: "🏢",
       title: "Cadastro de empreendimentos",
       desc: "Pré-cadastre os seus apartamentos (60m², 54m², 48m²) com valores e parcelas. Cliente entra, escolhe o cenário e ajusta só renda/FGTS — fricção zero.",
+      status: "soon",
     },
     {
       icon: "📊",
       title: "Histórico por cliente",
       desc: "Veja tudo que o cliente simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
+      status: "soon",
     },
     {
       icon: "👥",
       title: "Equipe inteira",
       desc: "Múltiplos corretores, permissões por equipe. Cada corretor vê só os próprios clientes. Gerente tem visão consolidada.",
+      status: "soon",
     },
   ];
 
@@ -289,7 +320,10 @@ function BeneficiosSection() {
               key={b.title}
               className="rounded-xl bg-card border border-border p-6 hover:border-ink-soft transition-colors"
             >
-              <div className="text-3xl mb-3">{b.icon}</div>
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="text-3xl">{b.icon}</div>
+                <StatusPill status={b.status} />
+              </div>
               <h3 className="font-serif text-xl text-ink mb-2">{b.title}</h3>
               <p className="text-ink-soft text-[14px] leading-relaxed">
                 {b.desc}
@@ -299,6 +333,21 @@ function BeneficiosSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function StatusPill({ status }: { status: "ready" | "soon" }) {
+  if (status === "ready") {
+    return (
+      <span className="inline-flex items-center gap-1 shrink-0 font-mono text-[10px] tracking-[0.12em] uppercase bg-green-soft text-green rounded-full px-2.5 py-1">
+        <span aria-hidden>✓</span> Disponível
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 shrink-0 font-mono text-[10px] tracking-[0.12em] uppercase bg-amber-soft text-amber rounded-full px-2.5 py-1">
+      <span aria-hidden>🛠</span> Em desenvolvimento
+    </span>
   );
 }
 
@@ -554,12 +603,53 @@ function FAQSection() {
           Sabemos o que você está pensando.
         </h2>
 
+        {/* Bloco 0: status do produto (honestidade) */}
+        <FaqGroup label="Status do produto">
+          <FaqItem q="O que já funciona hoje? E o que ainda vem?" defaultOpen>
+            <div className="space-y-3">
+              <p>
+                Estamos em fase de validação. Algumas funcionalidades estão
+                prontas pra você usar agora; outras estão no roadmap pra
+                quando o produto fechar a primeira leva de fundadores.
+              </p>
+              <div>
+                <strong className="text-green">Disponível agora:</strong>
+                <ul className="list-disc pl-5 mt-1.5 space-y-1">
+                  <li>
+                    Simulador completo (INCC sobre saldo devedor, ato
+                    parcelado, ITBI, FGTS, anuais)
+                  </li>
+                  <li>Comparativo de até 4 cenários lado a lado</li>
+                  <li>
+                    Exportação em PDF com capa, cenários e comparativo
+                  </li>
+                  <li>Compartilhamento de cenários por link</li>
+                </ul>
+              </div>
+              <div>
+                <strong className="text-amber">Em desenvolvimento:</strong>
+                <ul className="list-disc pl-5 mt-1.5 space-y-1">
+                  <li>White-label (sua marca, sua cor, sua URL)</li>
+                  <li>
+                    Captura de contatos automática direto no seu WhatsApp
+                  </li>
+                  <li>Cadastro de empreendimentos (catálogo)</li>
+                  <li>Histórico de simulações por cliente</li>
+                  <li>Múltiplos corretores na mesma conta</li>
+                </ul>
+              </div>
+              <p>
+                Os corretores que entrarem agora ajudam a priorizar o
+                roadmap — e travam o preço de fundador independente de
+                quando cada funcionalidade ficar pronta.
+              </p>
+            </div>
+          </FaqItem>
+        </FaqGroup>
+
         {/* Bloco 1: medo de vender com transparência */}
         <FaqGroup label="Sobre vender com transparência">
-          <FaqItem
-            q="O cliente entender o contrato me ajuda ou atrapalha?"
-            defaultOpen
-          >
+          <FaqItem q="O cliente entender o contrato me ajuda ou atrapalha?">
             <p>
               <strong>Ajuda.</strong> Cliente confuso desconfia, vai embora e
               procura concorrente. Cliente que entende o número, sente
