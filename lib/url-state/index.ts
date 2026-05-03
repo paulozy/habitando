@@ -266,6 +266,75 @@ export interface DecodeResult {
   error?: string;
 }
 
+/**
+ * Valida um payload já migrado para a versão atual.
+ *
+ * Estratégia tolerante: tenta validação estrita primeiro. Se falhar, tenta
+ * salvar o que dá — valida cada cenário individualmente, descartando os
+ * inválidos. Só falha de vez se nenhum cenário restar.
+ *
+ * Por que tolerante: usuário pode adicionar um 2º cenário com `defaultConfig`
+ * (campos zerados que falham `.positive()`). Se a hidratação rejeitar tudo
+ * por causa do cenário "rascunho", o 1º (válido) também é perdido.
+ */
+function validatePayloadLenient(rawData: unknown): DecodeResult {
+  // Tenta estrito primeiro — caminho feliz, sem warnings
+  const strict = PayloadSchema.safeParse(rawData);
+  if (strict.success) {
+    return {
+      ok: true,
+      scenarios: strict.data.scenarios,
+      corretor: strict.data.corretor,
+    };
+  }
+
+  // Fallback: filtra cenários individualmente
+  const data = rawData as { scenarios?: unknown[]; corretor?: unknown };
+  if (!Array.isArray(data?.scenarios)) {
+    return {
+      ok: false,
+      error: `Formato inválido: ${
+        strict.error.issues[0]?.message ?? "erro de schema"
+      }`,
+    };
+  }
+
+  const validScenarios: Scenario[] = [];
+  let droppedCount = 0;
+  for (const s of data.scenarios) {
+    const result = ScenarioSchema.safeParse(s);
+    if (result.success) {
+      validScenarios.push(result.data);
+    } else {
+      droppedCount++;
+    }
+  }
+
+  if (validScenarios.length === 0) {
+    return {
+      ok: false,
+      error: `Formato inválido: ${
+        strict.error.issues[0]?.message ?? "nenhum cenário válido"
+      }`,
+    };
+  }
+
+  if (droppedCount > 0 && typeof console !== "undefined") {
+    console.warn(
+      `[url-state] ${droppedCount} cenário(s) descartado(s) por validação. ${validScenarios.length} restante(s).`,
+    );
+  }
+
+  // Tenta salvar o corretor mesmo se a validação estrita falhou
+  let corretor: CorretorIdentity | undefined;
+  if (data.corretor) {
+    const cr = CorretorIdentitySchema.safeParse(data.corretor);
+    if (cr.success) corretor = cr.data;
+  }
+
+  return { ok: true, scenarios: validScenarios, corretor };
+}
+
 export function decodeScenarios(s: string): DecodeResult {
   try {
     const json = decompressFromEncodedURIComponent(s);
@@ -278,18 +347,7 @@ export function decodeScenarios(s: string): DecodeResult {
       v += 1;
       data.v = v;
     }
-    const parsed = PayloadSchema.safeParse(data);
-    if (!parsed.success) {
-      return {
-        ok: false,
-        error: `Formato inválido: ${parsed.error.issues[0]?.message ?? "erro de schema"}`,
-      };
-    }
-    return {
-      ok: true,
-      scenarios: parsed.data.scenarios,
-      corretor: parsed.data.corretor,
-    };
+    return validatePayloadLenient(data);
   } catch (e) {
     return {
       ok: false,
@@ -313,18 +371,7 @@ export function migrarPayload(raw: unknown): DecodeResult {
       v += 1;
       data.v = v;
     }
-    const parsed = PayloadSchema.safeParse(data);
-    if (!parsed.success) {
-      return {
-        ok: false,
-        error: `Formato inválido: ${parsed.error.issues[0]?.message ?? "erro de schema"}`,
-      };
-    }
-    return {
-      ok: true,
-      scenarios: parsed.data.scenarios,
-      corretor: parsed.data.corretor,
-    };
+    return validatePayloadLenient(data);
   } catch (e) {
     return {
       ok: false,

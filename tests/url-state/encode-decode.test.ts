@@ -101,7 +101,9 @@ describe("url-state encode/decode", () => {
     expect(dec.corretor?.whatsapp).toBe("5511993235002");
   });
 
-  it("decode rejeita WhatsApp com poucos dígitos pra normalização", async () => {
+  it("decode descarta corretor inválido mas mantém os cenários válidos", async () => {
+    // Validação lenient: corretor com WhatsApp inválido (5 dígitos) é
+    // descartado, mas o cenário válido é preservado.
     const { compressToEncodedURIComponent } = await import("lz-string");
     const payload = {
       v: 6,
@@ -114,6 +116,51 @@ describe("url-state encode/decode", () => {
         },
       ],
       corretor: { nome: "João", whatsapp: "12345" }, // muito curto
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.corretor).toBeUndefined();
+    expect(dec.scenarios).toHaveLength(1);
+  });
+
+  it("decode mantém só cenários válidos quando outros falham (proteção contra rascunho)", async () => {
+    // Caso real: corretor adiciona 2º cenário com defaults (valor_total=0)
+    // que falha schema.positive(). Sem lenient, o 1º (válido) seria
+    // perdido junto. Com lenient, só o inválido é descartado.
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const validConfig = scenarios[0].config;
+    const draftConfig = {
+      ...validConfig,
+      imovel: { ...validConfig.imovel, valor_total: 0 }, // falha .positive()
+    };
+    const payload = {
+      v: 6,
+      scenarios: [
+        { id: "a", label: "Válido", color: "#000", config: validConfig },
+        { id: "b", label: "Rascunho", color: "#111", config: draftConfig },
+      ],
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.scenarios).toHaveLength(1);
+    expect(dec.scenarios?.[0].label).toBe("Válido");
+  });
+
+  it("decode falha quando todos os cenários são inválidos", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const validConfig = scenarios[0].config;
+    const draftConfig = {
+      ...validConfig,
+      imovel: { ...validConfig.imovel, valor_total: 0 },
+    };
+    const payload = {
+      v: 6,
+      scenarios: [
+        { id: "a", label: "Rascunho A", color: "#000", config: draftConfig },
+        { id: "b", label: "Rascunho B", color: "#111", config: draftConfig },
+      ],
     };
     const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
     const dec = decodeScenarios(encoded);
