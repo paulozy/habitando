@@ -60,7 +60,7 @@ describe("url-state encode/decode", () => {
     expect(dec.corretor).toBeUndefined();
   });
 
-  it("decode rejeita corretor com WhatsApp em formato inválido", async () => {
+  it("decode normaliza WhatsApp com formatação (parênteses, traços, espaços)", async () => {
     const { compressToEncodedURIComponent } = await import("lz-string");
     const payload = {
       v: 6,
@@ -72,7 +72,48 @@ describe("url-state encode/decode", () => {
           config: scenarios[0].config,
         },
       ],
-      corretor: { nome: "João", whatsapp: "(11) 99999-8888" }, // tem caracteres não-dígito
+      corretor: { nome: "João", whatsapp: "(11) 99999-8888" },
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.corretor?.whatsapp).toBe("5511999998888");
+  });
+
+  it("decode adiciona DDI 55 quando corretor envia só DDD + número", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const payload = {
+      v: 6,
+      scenarios: [
+        {
+          id: "a",
+          label: scenarios[0].label,
+          color: scenarios[0].color,
+          config: scenarios[0].config,
+        },
+      ],
+      // 11 dígitos: DDD 11 + número 9 dígitos. Sem 55.
+      corretor: { nome: "João", whatsapp: "11993235002" },
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.corretor?.whatsapp).toBe("5511993235002");
+  });
+
+  it("decode rejeita WhatsApp com poucos dígitos pra normalização", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const payload = {
+      v: 6,
+      scenarios: [
+        {
+          id: "a",
+          label: scenarios[0].label,
+          color: scenarios[0].color,
+          config: scenarios[0].config,
+        },
+      ],
+      corretor: { nome: "João", whatsapp: "12345" }, // muito curto
     };
     const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
     const dec = decodeScenarios(encoded);

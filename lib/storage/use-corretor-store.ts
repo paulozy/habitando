@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { CorretorIdentity } from "@/lib/url-state";
+import { CorretorIdentitySchema, type CorretorIdentity } from "@/lib/url-state";
 
 export const CORRETOR_OWN_KEY = "habitando:corretor-own";
 export const CORRETOR_RECEIVED_KEY = "habitando:corretor-received";
@@ -29,13 +29,22 @@ function loadFromStorage(key: string): CorretorIdentity | null {
     const raw = window.localStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
+    // Schema com preprocess: dados antigos com WhatsApp sem DDI (ex:
+    // "11993235002") são normalizados automaticamente para "5511993235002".
+    const result = CorretorIdentitySchema.safeParse(parsed);
+    if (!result.success) return null;
+    // Re-salva versão normalizada se mudou (migração silenciosa).
     if (
-      parsed &&
-      typeof parsed.nome === "string" &&
-      typeof parsed.whatsapp === "string"
+      result.data.whatsapp !== parsed.whatsapp ||
+      result.data.nome !== parsed.nome
     ) {
-      return parsed as CorretorIdentity;
+      try {
+        window.localStorage.setItem(key, JSON.stringify(result.data));
+      } catch {
+        /* ignore */
+      }
     }
+    return result.data;
   } catch {
     /* ignore */
   }

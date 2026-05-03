@@ -1,12 +1,5 @@
 "use client";
 
-import * as React from "react";
-import {
-  Controller,
-  useFieldArray,
-  useFormContext,
-  useWatch,
-} from "react-hook-form";
 import {
   Badge,
   Button,
@@ -33,6 +26,13 @@ import {
   type SimulacaoConfig,
 } from "@/lib/calculation-engine";
 import { cn } from "@/lib/utils";
+import * as React from "react";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 
 const newId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
@@ -93,7 +93,7 @@ export function OrcamentoSection() {
         <div className="space-y-3">
           <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted flex items-center gap-1.5">
             👥 Renda
-            <FieldHelp text="Renda líquida (após IR/INSS) de cada comprador. Se a família tem renda passiva (aluguéis, juros, dividendos), some no campo Outros rendimentos." />
+            <FieldHelp text="Renda líquida (após IR/INSS) de cada comprador. Se a família tem renda passiva (aluguéis, juros, dividendos), adicione no campo Outros rendimentos." />
           </div>
           <CompradoresInner />
           <Field

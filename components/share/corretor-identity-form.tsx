@@ -42,8 +42,10 @@ export function CorretorIdentityForm({
   if (!open) return null;
 
   const handleSave = () => {
-    const cleanWhats = whatsapp.replace(/\D/g, "");
-    const candidate = { nome: nome.trim(), whatsapp: cleanWhats };
+    // O schema tem preprocess que normaliza o WhatsApp:
+    // - Adiciona 55 (DDI Brasil) se faltar
+    // - Limpa caracteres não-dígito
+    const candidate = { nome: nome.trim(), whatsapp };
     const parsed = CorretorIdentitySchema.safeParse(candidate);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dados inválidos.");
@@ -98,16 +100,25 @@ export function CorretorIdentityForm({
 
           <div>
             <Label htmlFor="corretor-whatsapp">WhatsApp</Label>
-            <Input
-              id="corretor-whatsapp"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="Ex: 5511999999999"
-              inputMode="tel"
-            />
+            <div className="flex">
+              <span
+                className="inline-flex items-center px-3 border border-r-0 border-border rounded-l-md bg-paper-alt text-ink-soft text-sm font-mono shrink-0"
+                aria-hidden
+              >
+                🇧🇷 +55
+              </span>
+              <Input
+                id="corretor-whatsapp"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="11999998888"
+                inputMode="tel"
+                className="rounded-l-none"
+              />
+            </div>
             <p className="text-[11.5px] text-ink-muted mt-1.5">
-              Formato com DDI (55) + DDD + número. Pode digitar com espaços ou
-              traços — vamos limpar.
+              Digite só DDD + número (ex: 11999998888). O +55 entra
+              automaticamente.
             </p>
           </div>
 

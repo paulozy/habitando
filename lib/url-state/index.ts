@@ -1,7 +1,7 @@
-import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
-import { z } from "zod";
 import { SimulacaoConfigSchema } from "@/lib/calculation-engine";
 import type { Scenario } from "@/lib/storage/use-scenarios-store";
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
+import { z } from "zod";
 
 /**
  * Versão do schema de share. Bumpe ao introduzir breaking change e adicione
@@ -39,9 +39,36 @@ const ScenarioSchema = z.object({
   config: SimulacaoConfigSchema,
 });
 
+/**
+ * Normaliza um WhatsApp brasileiro:
+ * - Remove tudo que não é dígito
+ * - Se já tem 12-13 dígitos começando com 55, mantém
+ * - Se tem 10-11 dígitos (DDD + número, sem DDI), prepende 55
+ * - Caso contrário, retorna os dígitos como estão (vai falhar na regex)
+ */
+function normalizeBrazilianWhatsApp(input: unknown): unknown {
+  if (typeof input !== "string") return input;
+  const digits = input.replace(/\D/g, "");
+  if (digits.length >= 12 && digits.length <= 13 && digits.startsWith("55")) {
+    return digits;
+  }
+  if (digits.length === 10 || digits.length === 11) {
+    return "55" + digits;
+  }
+  return digits;
+}
+
 export const CorretorIdentitySchema = z.object({
   nome: z.string().min(1).max(60),
-  whatsapp: z.string().regex(/^\d{10,15}$/, "WhatsApp deve conter apenas dígitos com DDI (ex: 5511999999999)"),
+  whatsapp: z.preprocess(
+    normalizeBrazilianWhatsApp,
+    z
+      .string()
+      .regex(
+        /^55\d{10,11}$/,
+        "WhatsApp inválido. Use DDD + número (ex: 11999998888)",
+      ),
+  ),
 });
 
 export type CorretorIdentity = z.infer<typeof CorretorIdentitySchema>;
