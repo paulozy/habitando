@@ -1,1 +1,0 @@
-http://localhost:3000/simulador/?c=iPs7sRnRGn
