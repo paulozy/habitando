@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Para corretores · feche mais vendas com transparência",
   description:
-    "Ferramenta de simulação imobiliária para corretores e imobiliárias — white-label, PDF profissional, captura de leads e cadastro de empreendimentos. Cliente entende o que vai pagar, você fecha mais.",
+    "Ferramenta de simulação imobiliária para corretores e imobiliárias — com a sua marca, relatório em PDF, captura de contatos e cadastro de empreendimentos. Cliente entende o que vai pagar, você fecha mais.",
 };
 
 export default function HomePage() {
@@ -79,7 +79,7 @@ function Hero() {
           </h1>
           <p className="text-lg md:text-xl text-[#bcc6d0] leading-relaxed mb-8 max-w-2xl">
             Habitando é o simulador que mostra o número real ao seu cliente —
-            com a sua marca, captura de leads e PDF profissional. Cliente que
+            com a sua marca, captura de contatos e relatório em PDF. Cliente que
             entende o contrato, fecha mais rápido.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -99,9 +99,9 @@ function Hero() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-[13px] text-[#bcc6d0]">
-            <Stat label="White-label" sub="Sua marca, seu link personalizado" />
+            <Stat label="Sua marca" sub="No link e no relatório" />
             <Stat label="PDF profissional" sub="Mande pelo WhatsApp" />
-            <Stat label="Leads automáticos" sub="Direto no seu WhatsApp" />
+            <Stat label="Contatos automáticos" sub="Direto no seu WhatsApp" />
           </div>
         </div>
 
@@ -172,7 +172,7 @@ function ProblemaSection() {
             </h2>
             <p className="text-ink-soft text-lg leading-relaxed mb-4">
               O comprador entra na sua imobiliária, ouve o pitch e pede a
-              simulação. Você manda um print do Excel, da Caixa ou um WhatsApp
+              simulação. Você manda uma imagem do Excel, da Caixa ou um WhatsApp
               com 12 fotos. Ele recebe, não entende, mostra pra família, e
               decide &quot;vou pensar&quot;.
             </p>
@@ -186,7 +186,7 @@ function ProblemaSection() {
           <div className="space-y-3">
             <CardProblema
               emoji="📸"
-              titulo="Print do Excel ou da Caixa"
+              titulo="Imagem do Excel ou da Caixa"
               desc="Layout caótico, sem sua marca, sem explicação. Cliente acha que está sendo enrolado."
             />
             <CardProblema
@@ -238,7 +238,7 @@ function BeneficiosSection() {
   const beneficios = [
     {
       icon: "🎨",
-      title: "White-label completo",
+      title: "Sua marca, sua URL",
       desc: "Logo da imobiliária, cores próprias, URL personalizada. O cliente nem percebe que é uma ferramenta externa — vira parte da sua marca.",
     },
     {
@@ -248,7 +248,7 @@ function BeneficiosSection() {
     },
     {
       icon: "🎯",
-      title: "Captura de leads embutida",
+      title: "Captura de contatos automática",
       desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
     },
     {
@@ -259,12 +259,12 @@ function BeneficiosSection() {
     {
       icon: "📊",
       title: "Histórico por cliente",
-      desc: "Veja tudo que o lead simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
+      desc: "Veja tudo que o cliente simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
     },
     {
       icon: "👥",
       title: "Equipe inteira",
-      desc: "Múltiplos corretores, permissões granulares. Cada corretor vê só os próprios leads. Gerente tem visão consolidada.",
+      desc: "Múltiplos corretores, permissões por equipe. Cada corretor vê só os próprios clientes. Gerente tem visão consolidada.",
     },
   ];
 
@@ -280,7 +280,7 @@ function BeneficiosSection() {
         </h2>
         <p className="text-ink-soft text-lg max-w-2xl mb-12">
           Tudo que você precisa para fechar venda com transparência, sem
-          depender de print do Excel.
+          depender de imagem do Excel.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -327,10 +327,10 @@ function PricingSection() {
             ciclo="por mês · sobe pra R$ 79"
             target="Autônomo, 1 usuário"
             features={[
-              "White-label básico (logo + cor)",
+              "Sua marca (logo + cor)",
               "PDF profissional",
               "Até 50 simulações/mês",
-              "Captura de leads (export CSV)",
+              "Captura de contatos (exporta planilha)",
             ]}
             highlight={false}
           />
@@ -357,7 +357,7 @@ function PricingSection() {
               "Tudo do plano Imobiliária",
               "Usuários ilimitados",
               "Permissões por equipe",
-              "Branding avançado (domínio + tema completo)",
+              "Personalização avançada (domínio + tema completo)",
               "Suporte prioritário",
             ]}
             highlight={false}
@@ -483,7 +483,7 @@ function ComoFuncionaSection() {
               "Manda print por WhatsApp",
               "Cliente entende metade, fica na dúvida",
               "Você manda áudio explicando INCC, cliente bloqueia",
-              "Lead some por 3 semanas",
+              "Cliente some por 3 semanas",
               "Quando volta, já está negociando com outro",
             ]}
           />
@@ -623,14 +623,14 @@ function FAQSection() {
 
           <FaqItem q="Cliente sai do meu funil ao entrar na ferramenta?">
             <p>
-              Não. A ferramenta é <strong>sua</strong> (white-label). O cliente
+              Não. A ferramenta é <strong>sua</strong> — com a sua marca. O cliente
               vê sua marca, sua cor, seu nome. Quando ele preenche WhatsApp/
               email para ver o relatório completo, vira{" "}
-              <strong>lead seu</strong> — você recebe notificação na hora.
+              <strong>contato seu</strong> — você recebe notificação na hora.
             </p>
           </FaqItem>
 
-          <FaqItem q="Como recebo os leads?">
+          <FaqItem q="Como recebo os contatos?">
             <p>
               Notificação por WhatsApp ou e-mail no momento em que o cliente
               termina a simulação e deixa contato. Os dados ficam num painel
@@ -664,14 +664,14 @@ function FAQSection() {
             </p>
           </FaqItem>
 
-          <FaqItem q="Tem trial? Posso cancelar quando quiser?">
+          <FaqItem q="Tem teste grátis? Posso cancelar quando quiser?">
             <p>
-              <strong>Trial de 14 dias sem cartão.</strong> Se quiser
+              <strong>7 dias grátis, sem cartão.</strong> Se quiser
               continuar, cobramos a partir do 15º dia. Sem cobrança automática
               surpresa.
             </p>
             <p>
-              Mensalidade <strong>sem fidelidade</strong>: cancela com 1 click.
+              Mensalidade <strong>sem fidelidade</strong>: cancela com 1 clique.
               Mantém os dados por 30 dias para exportar. Zero letra miúda.
             </p>
           </FaqItem>

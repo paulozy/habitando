@@ -87,7 +87,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Cliente paga mensalmente</strong> (default): cliente
+                <strong>Cliente paga mensalmente</strong> (padrão): cliente
                 desembolsa <em>parcela base + INCC do mês</em>. Saldo amortiza
                 conforme contrato. Financiamento na entrega ≈ valor original.
               </li>
@@ -106,7 +106,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
 
           <FaqItem question="Que valor de INCC devo usar?">
             <p>
-              Default da app: <strong>0,7%/mês</strong> (previsão meio-termo do
+              Padrão da ferramenta: <strong>0,7%/mês</strong> (previsão meio-termo do
               mercado). Para referência:
             </p>
             <ul className="list-disc pl-5 space-y-1">
@@ -210,7 +210,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
             <p>Sim, há 3 modos:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>Todo mês X</strong> (default Dezembro): incide em todo
+                <strong>Todo mês X</strong> (padrão Dezembro): incide em todo
                 ocorrência daquele mês durante a obra.
               </li>
               <li>
@@ -226,7 +226,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
 
           <FaqItem question="Por que limitamos a 1 parcela anual?">
             <p>
-              Para simplificar a UX. Na prática, contratos com mais de uma
+              Para deixar mais simples na hora de preencher. Na prática, contratos com mais de uma
               "anual" são raros — quando há, é mais comum ter o ato + uma
               anual + parcelas mensais. Se você precisar de múltiplas, use o
               modo "meses específicos" para combinar tudo.
@@ -329,7 +329,7 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
                 simplificado.
               </li>
               <li>
-                <strong>Progressivo</strong> (default): lenta no início
+                <strong>Progressivo</strong> (padrão): lenta no início
                 (fundação), acelera no meio (alvenaria), desacelera no fim
                 (acabamento). Padrão de obras reais.
               </li>
@@ -371,7 +371,7 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
           <FaqItem question="Por que o FGTS pode ser usado de duas formas?">
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>FGTS abate o saldo (default)</strong>: aplicado junto
+                <strong>FGTS abate o saldo (padrão)</strong>: aplicado junto
                 com o ato no m0, reduzindo o saldo desde o início.
               </li>
               <li>
@@ -496,7 +496,7 @@ function Hero() {
         (o índice que separa uma simulação honesta da surpresa na entrega).
       </p>
       <p className="text-ink-soft text-[13.5px] leading-relaxed max-w-2xl">
-        Procurando preço, planos ou trial? Veja a{" "}
+        Procurando preço, planos ou teste grátis? Veja a{" "}
         <a href="/" className="text-accent underline hover:text-accent/80">
           página principal
         </a>
