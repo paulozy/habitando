@@ -43,6 +43,8 @@ import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
 import { ShareControls } from "@/components/share/share-controls";
 import { DevolverButton } from "@/components/share/devolver-button";
 import { ScenarioPersist } from "@/lib/storage/persist";
+import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const scenarios = useScenariosStore((s) => s.scenarios);
@@ -149,8 +151,24 @@ export default function Home() {
 }
 
 function ConfigPanel({ scenario }: { scenario: Scenario }) {
+  const received = useCorretorStore((s) => s.received);
+  const [highlightOrcamento, setHighlightOrcamento] = React.useState(false);
+
+  // Quando o cliente abre via link compartilhado, pulsa a seção Orçamento
+  // logo após o scroll terminar pra reforçar onde ele deve focar.
+  React.useEffect(() => {
+    if (!received) return;
+    const t1 = window.setTimeout(() => setHighlightOrcamento(true), 1000);
+    const t2 = window.setTimeout(() => setHighlightOrcamento(false), 3000);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [received]);
+
   return (
     <div className="space-y-8">
+      {received && <ClienteBanner nome={received.nome} />}
       <section className="space-y-6">
         <NomeCenarioSection />
 
@@ -159,7 +177,14 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         <EntradaSection />
         <CustosCartoriaisSection />
 
-        <div id="secao-orcamento" className="scroll-mt-24 space-y-6">
+        <div
+          id="secao-orcamento"
+          className={cn(
+            "scroll-mt-24 space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
+            highlightOrcamento &&
+              "ring-2 ring-accent ring-offset-4 ring-offset-paper",
+          )}
+        >
           <SectionHead>Orçamento</SectionHead>
           <OrcamentoSection />
         </div>
@@ -173,6 +198,26 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
   );
 }
 
+function ClienteBanner({ nome }: { nome: string }) {
+  return (
+    <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-4 flex items-start gap-3">
+      <div className="text-2xl shrink-0" aria-hidden>
+        👋
+      </div>
+      <div className="flex-1">
+        <div className="font-medium text-ink text-[15px] mb-0.5">
+          {nome} compartilhou esse cenário com você
+        </div>
+        <p className="text-ink-soft text-[13.5px] leading-relaxed">
+          Confira/ajuste sua <strong>renda e gastos</strong> abaixo. Quando
+          terminar, clique no botão verde <strong>&quot;Mandar pra {nome}&quot;</strong>{" "}
+          pra devolver o cenário ajustado pelo WhatsApp.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Header({
   onResetAtivo,
   onLimparTudo,
@@ -180,6 +225,9 @@ function Header({
   onResetAtivo: () => void;
   onLimparTudo: () => void;
 }) {
+  const received = useCorretorStore((s) => s.received);
+  const isClienteMode = received !== null;
+
   return (
     <header className="bg-ink text-white relative overflow-hidden">
       <div
@@ -202,22 +250,36 @@ function Header({
                 FAQ
               </a>
             </div>
-            <h1 className="font-serif text-3xl md:text-5xl leading-tight flex items-center gap-3 flex-wrap">
-              Demo da ferramenta
-              <span className="font-sans text-[11px] font-mono tracking-[0.15em] uppercase border border-accent/40 text-accent px-2.5 py-1 rounded-full">
-                🎬 Demonstração
-              </span>
-            </h1>
-            <p className="text-[#8fa3b8] text-sm mt-1.5">
-              Esta é a calculadora — quer com sua marca, captura de leads e
-              PDF profissional?{" "}
-              <a
-                href="/#waitlist"
-                className="text-accent hover:text-accent/80 underline"
-              >
-                Entre na lista de espera →
-              </a>
-            </p>
+            {isClienteMode ? (
+              <>
+                <h1 className="font-serif text-3xl md:text-5xl leading-tight">
+                  Cenário de {received.nome}
+                </h1>
+                <p className="text-[#8fa3b8] text-sm mt-1.5">
+                  Confira sua renda e gastos abaixo, ajuste se quiser, e
+                  devolva o cenário pelo botão verde.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="font-serif text-3xl md:text-5xl leading-tight flex items-center gap-3 flex-wrap">
+                  Demo da ferramenta
+                  <span className="font-sans text-[11px] font-mono tracking-[0.15em] uppercase border border-accent/40 text-accent px-2.5 py-1 rounded-full">
+                    🎬 Demonstração
+                  </span>
+                </h1>
+                <p className="text-[#8fa3b8] text-sm mt-1.5">
+                  Esta é a calculadora — quer com sua marca, captura de leads e
+                  PDF profissional?{" "}
+                  <a
+                    href="/#waitlist"
+                    className="text-accent hover:text-accent/80 underline"
+                  >
+                    Entre na lista de espera →
+                  </a>
+                </p>
+              </>
+            )}
           </div>
           <div className="flex flex-col gap-3 items-end">
             <div className="flex items-center gap-2 flex-wrap justify-end">

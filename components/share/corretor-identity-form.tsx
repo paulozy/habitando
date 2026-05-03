@@ -60,7 +60,7 @@ export function CorretorIdentityForm({
       onClick={onClose}
     >
       <div
-        className="bg-card border border-border rounded-xl shadow-2xl max-w-md w-full p-6"
+        className="bg-card text-ink border border-border rounded-xl shadow-2xl max-w-md w-full p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 mb-4">
