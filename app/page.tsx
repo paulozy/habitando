@@ -247,57 +247,57 @@ function BeneficiosSection() {
     desc: string;
     status: "ready" | "soon";
   }[] = [
-    // ── Disponível hoje ──
-    {
-      icon: "🧮",
-      title: "Simulador completo",
-      desc: "INCC sobre saldo devedor, ato parcelado, ITBI, FGTS, anuais. Cálculo mês a mês com tabela detalhada e parecer automático.",
-      status: "ready",
-    },
-    {
-      icon: "🔀",
-      title: "Comparativo entre cenários",
-      desc: "Compare até 4 cenários lado a lado: ato à vista vs parcelado, com ou sem FGTS, prazos diferentes. Cliente vê o que faz mais sentido.",
-      status: "ready",
-    },
-    {
-      icon: "📑",
-      title: "Relatório em PDF",
-      desc: "Gere um PDF com capa, indicadores, tabela mês a mês, gráfico e comparativo. Layout pronto pra mandar pro cliente via WhatsApp.",
-      status: "ready",
-    },
-    // ── Em desenvolvimento ──
-    {
-      icon: "🎨",
-      title: "Sua marca, sua URL",
-      desc: "Logo da imobiliária, cores próprias, URL personalizada. O cliente nem percebe que é uma ferramenta externa — vira parte da sua marca.",
-      status: "soon",
-    },
-    {
-      icon: "🎯",
-      title: "Captura de contatos automática",
-      desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
-      status: "soon",
-    },
-    {
-      icon: "🏢",
-      title: "Cadastro de empreendimentos",
-      desc: "Pré-cadastre os seus apartamentos (60m², 54m², 48m²) com valores e parcelas. Cliente entra, escolhe o cenário e ajusta só renda/FGTS — fricção zero.",
-      status: "soon",
-    },
-    {
-      icon: "📊",
-      title: "Histórico por cliente",
-      desc: "Veja tudo que o cliente simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
-      status: "soon",
-    },
-    {
-      icon: "👥",
-      title: "Equipe inteira",
-      desc: "Múltiplos corretores, permissões por equipe. Cada corretor vê só os próprios clientes. Gerente tem visão consolidada.",
-      status: "soon",
-    },
-  ];
+      // ── Disponível hoje ──
+      {
+        icon: "🧮",
+        title: "Simulador completo",
+        desc: "INCC sobre saldo devedor, ato parcelado, ITBI, FGTS, anuais. Cálculo mês a mês com tabela detalhada e parecer automático.",
+        status: "ready",
+      },
+      {
+        icon: "🔀",
+        title: "Comparativo entre cenários",
+        desc: "Compare até 4 cenários lado a lado: ato à vista vs parcelado, com ou sem FGTS, prazos diferentes. Cliente vê o que faz mais sentido.",
+        status: "ready",
+      },
+      {
+        icon: "📑",
+        title: "Relatório em PDF",
+        desc: "Gere um PDF com capa, indicadores, tabela mês a mês, gráfico e comparativo. Layout pronto pra mandar pro cliente via WhatsApp.",
+        status: "ready",
+      },
+      // ── Em desenvolvimento ──
+      {
+        icon: "🎨",
+        title: "Sua marca, seu link",
+        desc: "Logo da imobiliária, cores próprias, link personalizado. O cliente nem percebe que é uma ferramenta externa — vira parte da sua marca.",
+        status: "soon",
+      },
+      {
+        icon: "🎯",
+        title: "Captura de contatos automática",
+        desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
+        status: "soon",
+      },
+      {
+        icon: "🏢",
+        title: "Cadastro de empreendimentos",
+        desc: "Pré-cadastre os seus apartamentos (60m², 54m², 48m²) com valores e parcelas. Cliente entra, escolhe o cenário e ajusta só renda/FGTS — fricção zero.",
+        status: "soon",
+      },
+      {
+        icon: "📊",
+        title: "Histórico por cliente",
+        desc: "Veja tudo que o cliente simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
+        status: "soon",
+      },
+      {
+        icon: "👥",
+        title: "Equipe inteira",
+        desc: "Múltiplos corretores, permissões por equipe. Cada corretor vê só os próprios clientes. Gerente tem visão consolidada.",
+        status: "soon",
+      },
+    ];
 
   return (
     <section className="py-20 md:py-28 bg-paper">
@@ -365,7 +365,7 @@ function PricingSection() {
           Preço de fundador para os primeiros corretores.
         </h2>
         <p className="text-ink-soft text-lg max-w-2xl mx-auto mb-12 text-center">
-          Quem entrar agora trava o preço — mesmo quando subir, você mantém o
+          Quem entrar agora garante o preço — mesmo quando subir, você mantém o
           valor original.
         </p>
 
@@ -629,7 +629,7 @@ function FAQSection() {
               <div>
                 <strong className="text-amber">Em desenvolvimento:</strong>
                 <ul className="list-disc pl-5 mt-1.5 space-y-1">
-                  <li>White-label (sua marca, sua cor, sua URL)</li>
+                  <li>White-label (sua marca, sua cor, seu link)</li>
                   <li>
                     Captura de contatos automática direto no seu WhatsApp
                   </li>
@@ -639,8 +639,8 @@ function FAQSection() {
                 </ul>
               </div>
               <p>
-                Os corretores que entrarem agora ajudam a priorizar o
-                roadmap — e travam o preço de fundador independente de
+                Os corretores que entrarem agora ajudam a priorizar os
+                próximos passos — e garante o preço de fundador independente de
                 quando cada funcionalidade ficar pronta.
               </p>
             </div>
@@ -768,7 +768,7 @@ function FAQSection() {
 
           <FaqItem q="Como funciona o preço de fundador?">
             <p>
-              Os primeiros corretores/imobiliárias travam o preço atual{" "}
+              Os primeiros corretores/imobiliárias garantem o preço atual{" "}
               (<strong>R$ 49 / R$ 199 / R$ 49 por usuário</strong>). Quando os
               valores subirem para os preços públicos (R$ 79 / R$ 299), você
               mantém o preço de fundador <strong>vitalício</strong> — mesmo
@@ -869,7 +869,7 @@ function CTAFinal() {
           🔥 Vagas limitadas para fundadores
         </div>
         <h2 className="font-serif text-4xl md:text-5xl leading-tight text-ink mb-6">
-          Quer travar o preço de fundador?
+          Quer garantir o preço de fundador?
         </h2>
         <p className="text-ink-soft text-lg md:text-xl mb-10 max-w-xl mx-auto">
           Entre na lista de espera. Vamos conversar antes de cobrar nada — você
