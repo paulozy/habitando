@@ -1,16 +1,16 @@
 "use client";
 
-import * as React from "react";
-import { Check, FileText, Link2, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/primitives";
-import { encodeScenarios } from "@/lib/url-state";
-import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
-import { useCorretorStore } from "@/lib/storage/use-corretor-store";
-import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { createShare, ShareError } from "@/lib/share/api";
+import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
+import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { CorretorIdentityForm } from "./corretor-identity-form";
+import { encodeScenarios } from "@/lib/url-state";
 import { cn } from "@/lib/utils";
+import { Check, FileText, Link2, UserCog } from "lucide-react";
+import * as React from "react";
+import { CorretorIdentityForm } from "./corretor-identity-form";
 
 export function ShareControls() {
   const scenarios = useScenariosStore((s) => s.scenarios);
@@ -33,10 +33,6 @@ export function ShareControls() {
   const doShare = React.useCallback(
     async (identityForLink: typeof own) => {
       if (!isSupabaseConfigured()) {
-        flash(
-          "err",
-          "Compartilhamento indisponível — configure o Supabase (veja supabase/README.md).",
-        );
         return;
       }
       setBusy(true);

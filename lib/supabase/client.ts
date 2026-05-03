@@ -17,11 +17,7 @@ export function getSupabase(): SupabaseClient {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
-    throw new Error(
-      "Supabase não configurado. Defina NEXT_PUBLIC_SUPABASE_URL e " +
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY em web/.env.local. Veja " +
-        "supabase/README.md pra setup do projeto.",
-    );
+    throw new Error();
   }
 
   cached = createClient(url, key, {
@@ -40,6 +36,6 @@ export function getSupabase(): SupabaseClient {
 export function isSupabaseConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
 }
