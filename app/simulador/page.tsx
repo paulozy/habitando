@@ -189,8 +189,14 @@ function Header({
       <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-10">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2">
-              Simulação Financeira Imobiliária
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2 flex items-center gap-3">
+              <a href="/" className="hover:text-accent/80 transition-colors">
+                Simulação Financeira Imobiliária
+              </a>
+              <span className="text-white/20">·</span>
+              <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
+                FAQ
+              </a>
             </div>
             <h1 className="font-serif text-3xl md:text-5xl leading-tight">
               Imóvel na planta · fluxo configurável

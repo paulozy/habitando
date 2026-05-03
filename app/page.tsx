@@ -44,12 +44,17 @@ function Hero() {
         <div className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent">
           Simulação Financeira
         </div>
-        <Link
-          href="/simulador"
-          className="text-sm text-white/80 hover:text-white transition-colors"
-        >
-          Abrir simulador →
-        </Link>
+        <div className="flex items-center gap-6 text-sm text-white/80">
+          <Link href="/faq" className="hover:text-white transition-colors">
+            FAQ
+          </Link>
+          <Link
+            href="/simulador"
+            className="hover:text-white transition-colors"
+          >
+            Abrir simulador →
+          </Link>
+        </div>
       </nav>
 
       <div className="relative max-w-[1200px] mx-auto px-6 md:px-10 py-20 md:py-32">
@@ -334,8 +339,11 @@ function Footer() {
           <Link href="/simulador" className="hover:text-white transition-colors">
             Simulador
           </Link>
+          <Link href="/faq" className="hover:text-white transition-colors">
+            FAQ
+          </Link>
           <span className="text-white/30">
-            App estático · roda 100% no seu navegador
+            App estático · 100% no seu navegador
           </span>
         </div>
       </div>
