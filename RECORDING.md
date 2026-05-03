@@ -237,13 +237,14 @@ Para mandar direto via WhatsApp aos corretores:
 
    > Olá [nome do corretor]! Tô validando uma ferramenta de simulação
    > pra corretores: você manda o link com a sua marca pro cliente, ele
-   > preenche, e você recebe o lead direto no seu WhatsApp.
+   > preenche, e você recebe o contato direto no seu WhatsApp.
    >
-   > Demo de 60s anexa. O diferencial é mostrar o INCC sobre saldo
+   > Demonstração no site. O diferencial é mostrar o INCC sobre saldo
    > devedor — aquele detalhe que ninguém explica direito.
    >
-   > Tá em fase pré-lançamento, com tarifa de fundador (R$ 49 ao mês,
-   > sobe pra 79). Topas um papo de 15 min pra eu mostrar?
+   > Tá em fase de pré-lançamento, com preço zero. Caso o produto seja
+   > validado, o plano é cobrar R$ 49/mês para os corretores que ajudaram
+   > a validar. Topa um papo de 15 min pra eu mostrar?
    >
    > Site: habitando.app
 
