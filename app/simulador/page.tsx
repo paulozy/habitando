@@ -168,7 +168,6 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
 
   return (
     <div className="space-y-8">
-      {received && <ClienteBanner nome={received.nome} />}
       <section className="space-y-6">
         <NomeCenarioSection />
 
@@ -177,16 +176,18 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         <EntradaSection />
         <CustosCartoriaisSection />
 
-        <div
-          id="secao-orcamento"
-          className={cn(
-            "scroll-mt-24 space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
-            highlightOrcamento &&
-              "ring-2 ring-accent ring-offset-4 ring-offset-paper",
-          )}
-        >
-          <SectionHead>Orçamento</SectionHead>
-          <OrcamentoSection />
+        <div id="secao-orcamento" className="scroll-mt-24 space-y-4">
+          {received && <ClienteBanner nome={received.nome} />}
+          <div
+            className={cn(
+              "space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
+              highlightOrcamento &&
+                "ring-2 ring-accent ring-offset-4 ring-offset-paper",
+            )}
+          >
+            <SectionHead>Orçamento</SectionHead>
+            <OrcamentoSection />
+          </div>
         </div>
 
         <SectionHead>Evolução de obra</SectionHead>
@@ -200,19 +201,24 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
 
 function ClienteBanner({ nome }: { nome: string }) {
   return (
-    <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-4 flex items-start gap-3">
-      <div className="text-2xl shrink-0" aria-hidden>
-        👋
-      </div>
-      <div className="flex-1">
-        <div className="font-medium text-ink text-[15px] mb-0.5">
-          {nome} compartilhou esse cenário com você
+    <div className="rounded-xl border border-accent/30 bg-accent/5 px-5 py-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <div className="text-2xl shrink-0" aria-hidden>
+          👋
         </div>
-        <p className="text-ink-soft text-[13.5px] leading-relaxed">
-          Confira/ajuste sua <strong>renda e gastos</strong> abaixo. Quando
-          terminar, clique no botão verde <strong>&quot;Mandar pra {nome}&quot;</strong>{" "}
-          pra devolver o cenário ajustado pelo WhatsApp.
-        </p>
+        <div className="flex-1">
+          <div className="font-medium text-ink text-[15px] mb-0.5">
+            {nome} compartilhou esse cenário com você
+          </div>
+          <p className="text-ink-soft text-[13.5px] leading-relaxed">
+            Confira/ajuste sua <strong>renda e gastos</strong> abaixo. Quando
+            terminar, clique em <strong>&quot;Mandar pra {nome}&quot;</strong>{" "}
+            pra devolver o cenário pelo WhatsApp.
+          </p>
+        </div>
+      </div>
+      <div className="pl-9">
+        <DevolverButton />
       </div>
     </div>
   );
