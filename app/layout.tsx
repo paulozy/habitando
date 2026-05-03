@@ -23,9 +23,12 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Simulação Financeira Imobiliária",
+  title: {
+    default: "Consigo comprar?: Imóvel",
+    template: "%s · Consigo comprar?: Imóvel",
+  },
   description:
-    "Simulador genérico de fluxo de caixa para compra de imóvel na planta — entrada parcelada, INCC, ITBI e financiamento bancário.",
+    "Simulador honesto de compra de imóvel na planta — INCC sobre saldo devedor, ato parcelado, ITBI, FGTS e cenários comparáveis.",
 };
 
 export default function RootLayout({

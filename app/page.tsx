@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Simulação Financeira Imobiliária · Compre na planta sem surpresas",
+  title: "Consigo comprar?: Imóvel · Compre na planta sem surpresas",
   description:
     "Simulador completo com INCC sobre saldo devedor, ato parcelado, ITBI, FGTS e múltiplos cenários comparáveis. Veja exatamente quanto você vai pagar mês a mês.",
 };
@@ -42,7 +42,7 @@ function Hero() {
 
       <nav className="relative max-w-[1200px] mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
         <div className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent">
-          Simulação Financeira
+          Consigo comprar?: Imóvel
         </div>
         <div className="flex items-center gap-6 text-sm text-white/80">
           <Link href="/faq" className="hover:text-white transition-colors">
@@ -333,7 +333,7 @@ function Footer() {
     <footer className="bg-ink text-white/60 py-10 border-t border-white/10">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px]">
         <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent/80">
-          Simulação Financeira
+          Consigo comprar?: Imóvel
         </div>
         <div className="flex flex-wrap gap-6">
           <Link href="/simulador" className="hover:text-white transition-colors">
