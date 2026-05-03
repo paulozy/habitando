@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* === Paleta principal === */
+  --color-paper: #f7f4ef;
+  --color-paper-alt: #ede9e2;
+  --color-ink: #0f1923;
+  --color-ink-soft: #3a4a58;
+  --color-ink-muted: #7a8fa0;
+  --color-accent: #c9973a;
+  --color-border: #ddd8cf;
+
+  /* === Cores semânticas === */
+  --color-blue: #1a56db;
+  --color-blue-soft: #e8f0fd;
+  --color-green: #0d7a4e;
+  --color-green-soft: #e4f5ee;
+  --color-amber: #b45309;
+  --color-amber-soft: #fef3c7;
+  --color-red: #b91c1c;
+  --color-red-soft: #fee2e2;
+  --color-violet: #7c3aed;
+  --color-violet-soft: #ede9fe;
+  --color-cyan: #0e7490;
+  --color-cyan-soft: #cffafe;
+
+  /* === Aliases compatíveis com shadcn/ui === */
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-ink);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-paper-alt);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-paper-alt);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent-foreground: #ffffff;
+  --color-destructive: var(--color-red);
+  --color-destructive-foreground: #ffffff;
+  --color-input: var(--color-border);
+  --color-ring: var(--color-accent);
+
+  /* === Tipografia === */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-dm-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, "DM Mono", monospace;
+
+  /* === Raios === */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-muted) transparent;
 }

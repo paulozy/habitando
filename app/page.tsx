@@ -1,65 +1,287 @@
-import Image from "next/image";
+"use client";
+
+import * as React from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
+import {
+  calcSimulacao,
+  validarInput,
+  validarOutput,
+  type SimulacaoConfig,
+} from "@/lib/calculation-engine";
+import { defaultConfig } from "@/lib/calculation-engine";
+import {
+  SCENARIO_COLORS,
+  useScenariosStore,
+  type Scenario,
+} from "@/lib/storage/use-scenarios-store";
+import {
+  Button,
+  SectionHead,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TooltipProvider,
+} from "@/components/ui/primitives";
+import {
+  CustosCartoriaisSection,
+  EntradaSection,
+  EvolucaoSection,
+  ImovelSection,
+  NomeCenarioSection,
+  OrcamentoSection,
+} from "@/components/form/sections";
+import {
+  Alertas,
+  FluxoChart,
+  ParcelasTable,
+  Parecer,
+  StatCards,
+} from "@/components/results";
+import { ScenarioBar } from "@/components/scenarios/scenario-bar";
+import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
+import { ShareControls } from "@/components/share/share-controls";
+import { ScenarioPersist } from "@/lib/storage/persist";
 
 export default function Home() {
+  const scenarios = useScenariosStore((s) => s.scenarios);
+  const activeId = useScenariosStore((s) => s.activeId);
+  const setActive = useScenariosStore((s) => s.setActive);
+  const update = useScenariosStore((s) => s.update);
+  const add = useScenariosStore((s) => s.add);
+  const replaceAll = useScenariosStore((s) => s.replaceAll);
+
+  const active = scenarios.find((s) => s.id === activeId)!;
+
+  const form = useForm<SimulacaoConfig>({
+    defaultValues: active.config,
+    mode: "onChange",
+  });
+
+  const [view, setView] = React.useState<"config" | "comparar">("config");
+
+  // Quando o cenário ativo muda, hidrata o form com sua config
+  const lastSyncedId = React.useRef(activeId);
+  React.useEffect(() => {
+    if (lastSyncedId.current !== activeId) {
+      form.reset(active.config);
+      lastSyncedId.current = activeId;
+    }
+  }, [activeId, active.config, form]);
+
+  // Persiste alterações do form no cenário ativo (debounce simples)
+  const watched = useWatch<SimulacaoConfig>({ control: form.control });
+  React.useEffect(() => {
+    if (!watched) return;
+    const t = setTimeout(() => {
+      update(activeId, watched as SimulacaoConfig);
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(watched), activeId]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <TooltipProvider>
+    <FormProvider {...form}>
+      <ScenarioPersist />
+      <div className="flex flex-col min-h-full">
+        <Header
+          onResetAtivo={() => {
+            const cfg = defaultConfig();
+            update(activeId, cfg);
+            form.reset(cfg);
+          }}
+          onLimparTudo={() => {
+            const cfg = defaultConfig();
+            const seed: Scenario = {
+              id:
+                typeof crypto !== "undefined" && crypto.randomUUID
+                  ? crypto.randomUUID()
+                  : Math.random().toString(36).slice(2, 10),
+              label: cfg.rotulo,
+              color: SCENARIO_COLORS[0],
+              config: cfg,
+            };
+            replaceAll([seed]);
+            form.reset(cfg);
+            // Limpa localStorage explicitamente para garantir
+            try {
+              window.localStorage.removeItem("can-i-buy:scenarios");
+            } catch {
+              /* ignore */
+            }
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <ScenarioBar
+          onAdd={() => add(defaultConfig())}
+          onSwitch={setActive}
+        />
+
+        <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-8 py-6 md:py-10">
+          <Tabs
+            value={view}
+            onValueChange={(v) => setView(v as "config" | "comparar")}
+            className="space-y-6"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <TabsList>
+              <TabsTrigger value="config">📝 Configuração & resultados</TabsTrigger>
+              <TabsTrigger value="comparar">
+                ⚖️ Comparar ({scenarios.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="config">
+              <ConfigPanel scenario={active} />
+            </TabsContent>
+
+            <TabsContent value="comparar">
+              <ScenarioComparar scenarios={scenarios} />
+            </TabsContent>
+          </Tabs>
+        </main>
+      </div>
+    </FormProvider>
+    </TooltipProvider>
+  );
+}
+
+function ConfigPanel({ scenario }: { scenario: Scenario }) {
+  return (
+    <div className="space-y-8">
+      <section className="space-y-6">
+        <NomeCenarioSection />
+
+        <SectionHead>Imóvel & Entrada</SectionHead>
+        <ImovelSection />
+        <EntradaSection />
+        <CustosCartoriaisSection />
+
+        <SectionHead>Orçamento</SectionHead>
+        <OrcamentoSection />
+
+        <SectionHead>Evolução de obra</SectionHead>
+        <EvolucaoSection />
+      </section>
+
+      <ResultsPanel color={scenario.color} />
+    </div>
+  );
+}
+
+function Header({
+  onResetAtivo,
+  onLimparTudo,
+}: {
+  onResetAtivo: () => void;
+  onLimparTudo: () => void;
+}) {
+  return (
+    <header className="bg-ink text-white relative overflow-hidden">
+      <div
+        aria-hidden
+        className="absolute -top-16 -right-16 w-72 h-72 rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(201,151,58,.25) 0%, transparent 70%)",
+        }}
+      />
+      <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-10">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2">
+              Simulação Financeira Imobiliária
+            </div>
+            <h1 className="font-serif text-3xl md:text-5xl leading-tight">
+              Imóvel na planta · fluxo configurável
+            </h1>
+            <p className="text-[#8fa3b8] text-sm mt-1.5">
+              Até 4 cenários · até 4 compradores · INCC · TEO bancário · ITBI · documentação diluída.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 items-end">
+            <ShareControls />
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10"
+                onClick={onResetAtivo}
+              >
+                Resetar cenário
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10"
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Limpar TUDO: descarta todos os cenários e dados salvos. Continuar?",
+                    )
+                  ) {
+                    onLimparTudo();
+                  }
+                }}
+              >
+                Limpar tudo
+              </Button>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
+    </header>
+  );
+}
+
+function ResultsPanel({ color }: { color: string }) {
+  const config = useWatch<SimulacaoConfig>() as SimulacaoConfig;
+
+  const result = React.useMemo(() => {
+    try {
+      return calcSimulacao(config);
+    } catch {
+      return null;
+    }
+  }, [config]);
+
+  const validInput = React.useMemo(() => {
+    try {
+      return validarInput(config);
+    } catch {
+      return { valido: true, erros: [], avisos: [], info: [] };
+    }
+  }, [config]);
+  const validOutput = React.useMemo(
+    () =>
+      result
+        ? validarOutput(result)
+        : { valido: true, erros: [], avisos: [], info: [] },
+    [result],
+  );
+
+  if (!result) {
+    return (
+      <div className="rounded-md bg-amber-soft text-amber px-4 py-3 text-sm">
+        Não foi possível calcular com a configuração atual. Confira os campos.
+      </div>
+    );
+  }
+
+  return (
+    <div aria-live="polite" aria-atomic="false">
+      <SectionHead>Indicadores</SectionHead>
+      <Alertas input={validInput} output={validOutput} />
+      <StatCards result={result} />
+
+      <SectionHead>Fluxo visual</SectionHead>
+      <FluxoChart result={result} baseColor={color} />
+
+      <SectionHead>Tabela detalhada</SectionHead>
+      <ParcelasTable result={result} />
+
+      <SectionHead>Parecer</SectionHead>
+      <Parecer items={result.parecer} />
     </div>
   );
 }
