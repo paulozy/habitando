@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ · Consigo comprar?: Imóvel",
+  title: "FAQ",
   description:
     "Tudo sobre o simulador: INCC, ato parcelado, parcelas anuais, ITBI, TEO bancário, saldo devedor e cenários comparáveis.",
 };
@@ -87,7 +87,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
             </p>
             <ul className="list-disc pl-5 space-y-2">
               <li>
-                <strong>Cliente paga mensalmente</strong> (default): cliente
+                <strong>Cliente paga mensalmente</strong> (padrão): cliente
                 desembolsa <em>parcela base + INCC do mês</em>. Saldo amortiza
                 conforme contrato. Financiamento na entrega ≈ valor original.
               </li>
@@ -106,7 +106,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
 
           <FaqItem question="Que valor de INCC devo usar?">
             <p>
-              Default da app: <strong>0,7%/mês</strong> (previsão meio-termo do
+              Padrão da ferramenta: <strong>0,7%/mês</strong> (previsão meio-termo do
               mercado). Para referência:
             </p>
             <ul className="list-disc pl-5 space-y-1">
@@ -210,7 +210,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
             <p>Sim, há 3 modos:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>Todo mês X</strong> (default Dezembro): incide em todo
+                <strong>Todo mês X</strong> (padrão Dezembro): incide em todo
                 ocorrência daquele mês durante a obra.
               </li>
               <li>
@@ -226,7 +226,7 @@ inccDoMes  = saldo[m] × INCC      ← juros do mês`}
 
           <FaqItem question="Por que limitamos a 1 parcela anual?">
             <p>
-              Para simplificar a UX. Na prática, contratos com mais de uma
+              Para deixar mais simples na hora de preencher. Na prática, contratos com mais de uma
               "anual" são raros — quando há, é mais comum ter o ato + uma
               anual + parcelas mensais. Se você precisar de múltiplas, use o
               modo "meses específicos" para combinar tudo.
@@ -329,7 +329,7 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
                 simplificado.
               </li>
               <li>
-                <strong>Progressivo</strong> (default): lenta no início
+                <strong>Progressivo</strong> (padrão): lenta no início
                 (fundação), acelera no meio (alvenaria), desacelera no fim
                 (acabamento). Padrão de obras reais.
               </li>
@@ -371,7 +371,7 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
           <FaqItem question="Por que o FGTS pode ser usado de duas formas?">
             <ul className="list-disc pl-5 space-y-1">
               <li>
-                <strong>FGTS abate o saldo (default)</strong>: aplicado junto
+                <strong>FGTS abate o saldo (padrão)</strong>: aplicado junto
                 com o ato no m0, reduzindo o saldo desde o início.
               </li>
               <li>
@@ -383,59 +383,96 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
           </FaqItem>
         </Section>
 
-        <Section id="cenarios" icon="⚖️" title="Cenários e comparativo">
-          <FaqItem question="Quantos cenários posso criar?">
+        <Section id="cenarios" icon="⚖️" title="Comparar cenários">
+          <FaqItem question="Posso simular vários apartamentos ao mesmo tempo?">
             <p>
-              Até <strong>4 cenários</strong> simultâneos. Cada um tem sua
-              configuração independente. Você pode renomear (duplo clique na
-              tab), duplicar, e remover.
+              Sim — até <strong>4 cenários</strong> ao mesmo tempo. Cada um
+              guarda os próprios valores e nome. Você pode renomear (clicando
+              duas vezes em cima), duplicar e remover quando quiser.
+            </p>
+            <p>
+              Útil pra mostrar ao cliente: &quot;veja a diferença entre o
+              apartamento de 60m² e o de 54m²&quot;, ou &quot;e se você desse
+              R$ 30 mil de ato em vez de R$ 20 mil?&quot;.
             </p>
           </FaqItem>
 
           <FaqItem question="Como o comparativo funciona?">
             <p>
-              A aba "⚖️ Comparar" mostra cards lado a lado com os valores-chave,
-              5 critérios em barras horizontais (Total geral, Pico anual, Mês
-              normal máx, Documentação, Ato), gráfico comparativo de
-              desembolso mensal e parecer dizendo qual cenário ganha em cada
-              quesito.
+              Quando você cria 2 ou mais cenários, aparece a aba{" "}
+              <strong>⚖️ Comparar</strong> no topo. Lá dentro:
             </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>
+                Os cenários ficam <strong>lado a lado</strong> em cartões com
+                os valores principais
+              </li>
+              <li>
+                5 medidas em barras (custo total, pico no mês de anual, mês
+                normal mais caro, custos cartoriais, ato)
+              </li>
+              <li>
+                Um <strong>gráfico</strong> comparativo do que se paga mês a
+                mês
+              </li>
+              <li>
+                Um <strong>parecer</strong> automático apontando qual cenário
+                vence em cada medida
+              </li>
+            </ul>
           </FaqItem>
         </Section>
 
         <Section id="privacidade" icon="🔒" title="Privacidade e dados">
-          <FaqItem question="Meus dados ficam salvos onde?">
+          <FaqItem question="Onde meus dados ficam salvos?">
             <p>
-              <strong>Localmente, no seu navegador</strong>, em{" "}
-              <code className="font-mono text-[12px]">localStorage</code>.
-              Nada vai para nenhum servidor — o app é uma SPA estática que
-              roda 100% no client.
+              <strong>No seu navegador, no seu computador.</strong> Nada é
+              enviado para nenhum servidor. Você fecha a aba, volta no dia
+              seguinte, e seus cenários estão lá.
+            </p>
+            <p>
+              Se você apagar o histórico do navegador ou usar outro computador,
+              seus cenários não vão junto — então use o botão{" "}
+              <strong>Compartilhar</strong> para guardar o link da simulação em
+              outro lugar (anotações, e-mail, WhatsApp).
             </p>
           </FaqItem>
 
-          <FaqItem question="Posso compartilhar uma simulação?">
+          <FaqItem question="Posso compartilhar uma simulação com meu cliente?">
             <p>
-              Sim. Clique em "Compartilhar" no header — gera um URL com a
-              configuração completa (compactada com lz-string). Quem abrir o
-              link vê exatamente a mesma simulação que você. Não precisa criar
-              conta nem cadastrar e-mail.
+              Sim. Clique em <strong>&quot;Compartilhar&quot;</strong> no topo
+              da tela — gera um link com a simulação completa. Você manda no
+              WhatsApp do cliente e quando ele abrir, vê exatamente o que você
+              vê.
+            </p>
+            <p>
+              Sem precisar criar conta. Sem precisar cadastrar e-mail. O
+              cliente abre o link e pronto.
             </p>
           </FaqItem>
 
-          <FaqItem question="Como limpo tudo?">
+          <FaqItem question="Como começo do zero?">
             <p>
-              No header, "Resetar cenário" zera o cenário ativo. "Limpar tudo"
-              remove todos os cenários e descarta o localStorage — começa do
-              zero.
+              No topo da tela há dois botões:
             </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>
+                <strong>Resetar cenário</strong> — zera só o cenário aberto no
+                momento
+              </li>
+              <li>
+                <strong>Limpar tudo</strong> — apaga todos os cenários e
+                começa novinho
+              </li>
+            </ul>
           </FaqItem>
 
-          <FaqItem question="O link compartilhado tem alguma data de expiração?">
+          <FaqItem question="O link da simulação expira?">
             <p>
-              Não. O conteúdo da simulação está no próprio URL (não há
-              servidor). Funciona enquanto a aplicação existir e o navegador
-              suportar a versão do schema. Há migrators que cuidam de URLs
-              antigos automaticamente.
+              <strong>Não.</strong> A simulação inteira está dentro do próprio
+              link — não depende de nenhum servidor para funcionar. Você pode
+              guardar o link por anos e ele continuará abrindo a mesma
+              simulação.
             </p>
           </FaqItem>
         </Section>
@@ -459,14 +496,14 @@ function Header() {
           href="/"
           className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors"
         >
-          Consigo comprar?: Imóvel
+          Habitando
         </Link>
         <nav className="flex items-center gap-6 text-sm text-white/80">
           <Link href="/" className="hover:text-white transition-colors">
             Início
           </Link>
           <Link href="/simulador" className="hover:text-white transition-colors">
-            Simulador
+            Demo
           </Link>
           <Link href="/faq" className="text-white">
             FAQ
@@ -483,13 +520,24 @@ function Hero() {
       <div className="font-mono text-[11px] tracking-[0.18em] uppercase text-ink-muted mb-3">
         Documentação
       </div>
+      <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted mb-3">
+        Documentação técnica
+      </div>
       <h1 className="font-serif text-4xl md:text-5xl leading-tight text-ink mb-4">
-        Perguntas frequentes
+        Como o cálculo funciona
       </h1>
-      <p className="text-ink-soft text-lg leading-relaxed max-w-2xl">
-        Tudo que você precisa saber sobre o simulador, com atenção especial
-        para o <strong className="text-ink">INCC</strong> — o índice que faz a
-        diferença entre uma simulação honesta e uma surpresa na entrega.
+      <p className="text-ink-soft text-lg leading-relaxed max-w-2xl mb-3">
+        Esta é a base técnica do simulador — útil para você apresentar com
+        propriedade ao cliente e mostrar o diferencial do{" "}
+        <strong className="text-ink">INCC sobre saldo devedor</strong>{" "}
+        (o índice que separa uma simulação honesta da surpresa na entrega).
+      </p>
+      <p className="text-ink-soft text-[13.5px] leading-relaxed max-w-2xl">
+        Procurando preço, planos ou teste grátis? Veja a{" "}
+        <a href="/" className="text-accent underline hover:text-accent/80">
+          página principal
+        </a>
+        .
       </p>
 
       <nav className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
@@ -613,16 +661,25 @@ function CTA() {
           Pronto para colocar os números no papel?
         </h2>
         <p className="text-[#bcc6d0] mb-6 max-w-xl">
-          Cinco minutos preenchendo um cenário e você sai com a confiança de
-          quem leu o contrato antes de assinar.
+          Cinco minutos preenchendo um cenário de demonstração e você entende
+          como vender com transparência. Quando estiver pronto, entre na lista
+          de espera.
         </p>
-        <Link
-          href="/simulador"
-          className="inline-flex items-center gap-2 bg-accent text-ink font-semibold px-6 py-3 rounded-md hover:bg-accent/90 transition-colors"
-        >
-          Abrir o simulador
-          <span aria-hidden>→</span>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 justify-start sm:items-center">
+          <Link
+            href="/simulador"
+            className="inline-flex items-center justify-center gap-2 bg-accent text-ink font-semibold px-6 py-3 rounded-md hover:bg-accent/90 transition-colors"
+          >
+            Ver demo da ferramenta
+            <span aria-hidden>→</span>
+          </Link>
+          <Link
+            href="/#waitlist"
+            className="inline-flex items-center justify-center gap-2 text-white border border-white/20 px-6 py-3 rounded-md hover:bg-white/10 transition-colors"
+          >
+            Entrar na lista de espera
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -633,14 +690,14 @@ function Footer() {
     <footer className="bg-ink text-white/60 py-8 border-t border-white/10">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px]">
         <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent/80">
-          Consigo comprar?: Imóvel
+          Habitando
         </div>
         <div className="flex flex-wrap gap-6">
           <Link href="/" className="hover:text-white transition-colors">
             Início
           </Link>
           <Link href="/simulador" className="hover:text-white transition-colors">
-            Simulador
+            Demo
           </Link>
           <Link href="/faq" className="text-white">
             FAQ

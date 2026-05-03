@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, Link2 } from "lucide-react";
+import { Check, FileText, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/primitives";
-import { buildShareURL } from "@/lib/url-state";
+import { buildShareURL, encodeScenarios } from "@/lib/url-state";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,13 @@ export function ShareControls() {
     }
   };
 
+  const handleExportPDF = () => {
+    if (typeof window === "undefined") return;
+    const encoded = encodeScenarios(scenarios);
+    const url = `${window.location.origin}/relatorio/?s=${encoded}`;
+    window.open(url, "_blank", "noopener");
+  };
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <Button
@@ -43,6 +50,17 @@ export function ShareControls() {
       >
         <Link2 className="h-3.5 w-3.5" />
         Compartilhar
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleExportPDF}
+        className="bg-transparent border-white/20 text-white hover:bg-white/10"
+        title="Abre uma página de relatório otimizada para impressão / salvar como PDF"
+      >
+        <FileText className="h-3.5 w-3.5" />
+        Exportar PDF
       </Button>
       {feedback && (
         <span
