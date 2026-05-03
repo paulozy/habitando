@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ · Consigo comprar?: Imóvel",
+  title: "FAQ",
   description:
     "Tudo sobre o simulador: INCC, ato parcelado, parcelas anuais, ITBI, TEO bancário, saldo devedor e cenários comparáveis.",
 };
@@ -459,7 +459,7 @@ function Header() {
           href="/"
           className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors"
         >
-          Consigo comprar?: Imóvel
+          Habitando
         </Link>
         <nav className="flex items-center gap-6 text-sm text-white/80">
           <Link href="/" className="hover:text-white transition-colors">
@@ -643,7 +643,7 @@ function Footer() {
     <footer className="bg-ink text-white/60 py-8 border-t border-white/10">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px]">
         <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent/80">
-          Consigo comprar?: Imóvel
+          Habitando
         </div>
         <div className="flex flex-wrap gap-6">
           <Link href="/" className="hover:text-white transition-colors">

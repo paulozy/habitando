@@ -191,7 +191,7 @@ function Header({
           <div>
             <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2 flex items-center gap-3">
               <a href="/" className="hover:text-accent/80 transition-colors">
-                Consigo comprar?: Imóvel
+                Habitando
               </a>
               <span className="text-white/20">·</span>
               <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">

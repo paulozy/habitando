@@ -50,7 +50,7 @@ function Hero() {
           href="/"
           className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80 transition-colors"
         >
-          Consigo comprar?: Imóvel
+          Habitando
         </Link>
         <div className="flex items-center gap-6 text-sm text-white/80">
           <Link href="/simulador" className="hover:text-white transition-colors">
@@ -74,20 +74,20 @@ function Hero() {
             🤝 Para corretores e imobiliárias
           </div>
           <h1 className="font-serif text-4xl md:text-6xl leading-[1.05] mb-6">
-            Feche mais vendas mostrando o{" "}
-            <span className="text-accent italic">número real</span> ao cliente.
+            Cliente que entende,{" "}
+            <span className="text-accent italic">fecha</span>.
           </h1>
           <p className="text-lg md:text-xl text-[#bcc6d0] leading-relaxed mb-8 max-w-2xl">
-            Pare de mandar print da simulação Caixa. Use uma ferramenta com a
-            sua marca, gere relatórios em PDF e capture leads enquanto o cliente
-            entende o que vai pagar.
+            Habitando é o simulador que mostra o número real ao seu cliente —
+            com a sua marca, captura de leads e PDF profissional. Cliente que
+            entende o contrato, fecha mais rápido.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="#waitlist"
               className="inline-flex items-center justify-center gap-2 bg-accent text-ink font-semibold px-6 py-3.5 rounded-md hover:bg-accent/90 transition-colors"
             >
-              Entrar na lista de espera
+              Quero o preço de fundador
               <span aria-hidden>→</span>
             </Link>
             <Link
@@ -444,7 +444,7 @@ function ComoFuncionaSection() {
           O que muda no seu dia
         </div>
         <h2 className="font-serif text-3xl md:text-4xl leading-tight mb-12 max-w-2xl">
-          Antes vs. depois do Consigo comprar?: Imóvel.
+          Antes vs. depois do Habitando.
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -676,7 +676,7 @@ function CTAFinal() {
           </p>
           <div className="flex flex-col gap-3">
             <a
-              href="https://wa.me/?text=Tenho%20interesse%20no%20Consigo%20comprar%3A%20Im%C3%B3vel%20para%20corretores"
+              href="https://wa.me/?text=Tenho%20interesse%20no%20Habitando%20%E2%80%94%20simulador%20para%20corretores"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-green text-white font-semibold px-5 py-3 rounded-md hover:opacity-90 transition-opacity"
@@ -685,7 +685,7 @@ function CTAFinal() {
               Mandar mensagem por WhatsApp
             </a>
             <a
-              href="mailto:contato@exemplo.com?subject=Lista%20de%20espera%20%E2%80%94%20Consigo%20comprar%3F%20Im%C3%B3vel%20para%20corretores&body=Ol%C3%A1!%20Sou%20corretor%2Fimobili%C3%A1ria%20%E2%80%94%20conta%20um%20pouco%20do%20produto%3F"
+              href="mailto:contato@habitando.app?subject=Lista%20de%20espera%20%E2%80%94%20Habitando&body=Ol%C3%A1!%20Sou%20corretor%2Fimobili%C3%A1ria%20%E2%80%94%20conta%20um%20pouco%20do%20produto%3F"
               className="inline-flex items-center justify-center gap-2 bg-card text-ink border border-border font-semibold px-5 py-3 rounded-md hover:bg-paper-alt transition-colors"
             >
               <span aria-hidden>✉️</span>
@@ -710,7 +710,7 @@ function Footer() {
     <footer className="bg-ink text-white/60 py-10 border-t border-white/10">
       <div className="max-w-[1200px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-[13px]">
         <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent/80">
-          Consigo comprar?: Imóvel
+          Habitando
         </div>
         <div className="flex flex-wrap gap-6">
           <Link href="/" className="hover:text-white transition-colors">

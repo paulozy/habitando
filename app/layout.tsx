@@ -24,11 +24,11 @@ const dmMono = DM_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Consigo comprar?: Imóvel",
-    template: "%s · Consigo comprar?: Imóvel",
+    default: "Habitando · o simulador que fecha venda",
+    template: "%s · Habitando",
   },
   description:
-    "Simulador honesto de compra de imóvel na planta — INCC sobre saldo devedor, ato parcelado, ITBI, FGTS e cenários comparáveis.",
+    "Habitando é o simulador imobiliário para corretores. Mostra o número real ao cliente, com a sua marca, captura de leads e PDF profissional. Cliente que entende, fecha.",
 };
 
 export default function RootLayout({
