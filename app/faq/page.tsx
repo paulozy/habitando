@@ -383,59 +383,96 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
           </FaqItem>
         </Section>
 
-        <Section id="cenarios" icon="⚖️" title="Cenários e comparativo">
-          <FaqItem question="Quantos cenários posso criar?">
+        <Section id="cenarios" icon="⚖️" title="Comparar cenários">
+          <FaqItem question="Posso simular vários apartamentos ao mesmo tempo?">
             <p>
-              Até <strong>4 cenários</strong> simultâneos. Cada um tem sua
-              configuração independente. Você pode renomear (duplo clique na
-              tab), duplicar, e remover.
+              Sim — até <strong>4 cenários</strong> ao mesmo tempo. Cada um
+              guarda os próprios valores e nome. Você pode renomear (clicando
+              duas vezes em cima), duplicar e remover quando quiser.
+            </p>
+            <p>
+              Útil pra mostrar ao cliente: &quot;veja a diferença entre o
+              apartamento de 60m² e o de 54m²&quot;, ou &quot;e se você desse
+              R$ 30 mil de ato em vez de R$ 20 mil?&quot;.
             </p>
           </FaqItem>
 
           <FaqItem question="Como o comparativo funciona?">
             <p>
-              A aba "⚖️ Comparar" mostra cards lado a lado com os valores-chave,
-              5 critérios em barras horizontais (Total geral, Pico anual, Mês
-              normal máx, Documentação, Ato), gráfico comparativo de
-              desembolso mensal e parecer dizendo qual cenário ganha em cada
-              quesito.
+              Quando você cria 2 ou mais cenários, aparece a aba{" "}
+              <strong>⚖️ Comparar</strong> no topo. Lá dentro:
             </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>
+                Os cenários ficam <strong>lado a lado</strong> em cartões com
+                os valores principais
+              </li>
+              <li>
+                5 medidas em barras (custo total, pico no mês de anual, mês
+                normal mais caro, custos cartoriais, ato)
+              </li>
+              <li>
+                Um <strong>gráfico</strong> comparativo do que se paga mês a
+                mês
+              </li>
+              <li>
+                Um <strong>parecer</strong> automático apontando qual cenário
+                vence em cada medida
+              </li>
+            </ul>
           </FaqItem>
         </Section>
 
         <Section id="privacidade" icon="🔒" title="Privacidade e dados">
-          <FaqItem question="Meus dados ficam salvos onde?">
+          <FaqItem question="Onde meus dados ficam salvos?">
             <p>
-              <strong>Localmente, no seu navegador</strong>, em{" "}
-              <code className="font-mono text-[12px]">localStorage</code>.
-              Nada vai para nenhum servidor — o app é uma SPA estática que
-              roda 100% no client.
+              <strong>No seu navegador, no seu computador.</strong> Nada é
+              enviado para nenhum servidor. Você fecha a aba, volta no dia
+              seguinte, e seus cenários estão lá.
+            </p>
+            <p>
+              Se você apagar o histórico do navegador ou usar outro computador,
+              seus cenários não vão junto — então use o botão{" "}
+              <strong>Compartilhar</strong> para guardar o link da simulação em
+              outro lugar (anotações, e-mail, WhatsApp).
             </p>
           </FaqItem>
 
-          <FaqItem question="Posso compartilhar uma simulação?">
+          <FaqItem question="Posso compartilhar uma simulação com meu cliente?">
             <p>
-              Sim. Clique em "Compartilhar" no header — gera um URL com a
-              configuração completa (compactada com lz-string). Quem abrir o
-              link vê exatamente a mesma simulação que você. Não precisa criar
-              conta nem cadastrar e-mail.
+              Sim. Clique em <strong>&quot;Compartilhar&quot;</strong> no topo
+              da tela — gera um link com a simulação completa. Você manda no
+              WhatsApp do cliente e quando ele abrir, vê exatamente o que você
+              vê.
+            </p>
+            <p>
+              Sem precisar criar conta. Sem precisar cadastrar e-mail. O
+              cliente abre o link e pronto.
             </p>
           </FaqItem>
 
-          <FaqItem question="Como limpo tudo?">
+          <FaqItem question="Como começo do zero?">
             <p>
-              No header, "Resetar cenário" zera o cenário ativo. "Limpar tudo"
-              remove todos os cenários e descarta o localStorage — começa do
-              zero.
+              No topo da tela há dois botões:
             </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>
+                <strong>Resetar cenário</strong> — zera só o cenário aberto no
+                momento
+              </li>
+              <li>
+                <strong>Limpar tudo</strong> — apaga todos os cenários e
+                começa novinho
+              </li>
+            </ul>
           </FaqItem>
 
-          <FaqItem question="O link compartilhado tem alguma data de expiração?">
+          <FaqItem question="O link da simulação expira?">
             <p>
-              Não. O conteúdo da simulação está no próprio URL (não há
-              servidor). Funciona enquanto a aplicação existir e o navegador
-              suportar a versão do schema. Há migrators que cuidam de URLs
-              antigos automaticamente.
+              <strong>Não.</strong> A simulação inteira está dentro do próprio
+              link — não depende de nenhum servidor para funcionar. Você pode
+              guardar o link por anos e ele continuará abrindo a mesma
+              simulação.
             </p>
           </FaqItem>
         </Section>
