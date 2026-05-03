@@ -99,7 +99,7 @@ function Hero() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-[13px] text-[#bcc6d0]">
-            <Stat label="White-label" sub="Sua marca, sua URL" />
+            <Stat label="White-label" sub="Sua marca, seu link personalizado" />
             <Stat label="PDF profissional" sub="Mande pelo WhatsApp" />
             <Stat label="Leads automáticos" sub="Direto no seu WhatsApp" />
           </div>
@@ -365,7 +365,7 @@ function PricingSection() {
         </div>
 
         <p className="text-center text-[12.5px] text-ink-muted mt-8">
-          Sem fidelidade. Cancele quando quiser. Trial de 14 dias sem cartão.
+          Sem fidelidade. Cancele quando quiser. Teste de 7 dias sem cartão.
         </p>
       </div>
     </section>
@@ -390,8 +390,8 @@ function PriceCard({
   return (
     <div
       className={`rounded-xl p-6 flex flex-col ${highlight
-          ? "bg-ink text-white border-2 border-accent shadow-xl scale-[1.02]"
-          : "bg-card border border-border"
+        ? "bg-ink text-white border-2 border-accent shadow-xl scale-[1.02]"
+        : "bg-card border border-border"
         }`}
     >
       {highlight && (
@@ -442,8 +442,8 @@ function PriceCard({
       <Link
         href="#waitlist"
         className={`text-center px-4 py-2.5 rounded-md font-medium text-sm transition-colors ${highlight
-            ? "bg-accent text-ink hover:bg-accent/90"
-            : "bg-ink text-white hover:bg-ink-soft"
+          ? "bg-accent text-ink hover:bg-accent/90"
+          : "bg-ink text-white hover:bg-ink-soft"
           }`}
       >
         Entrar na lista
@@ -554,72 +554,125 @@ function FAQSection() {
           Sabemos o que você está pensando.
         </h2>
 
-        <div className="space-y-2">
+        {/* Bloco 1: medo de vender com transparência */}
+        <FaqGroup label="Sobre vender com transparência">
           <FaqItem
-            q="O cliente entender tudo não atrapalha minha venda?"
+            q="O cliente entender o contrato me ajuda ou atrapalha?"
             defaultOpen
           >
             <p>
-              Pelo contrário. Cliente confuso desconfia, vai embora e procura
-              concorrente. Cliente que entende sabe o que está pagando, sente
+              <strong>Ajuda.</strong> Cliente confuso desconfia, vai embora e
+              procura concorrente. Cliente que entende o número, sente
               confiança e fecha mais rápido.
             </p>
             <p>
               A ferramenta não <em>vende por você</em> — ela tira a fricção da
-              etapa de explicação técnica para você focar no que importa:
-              relacionamento, negociação e fechamento.
+              etapa técnica para você focar em relacionamento, negociação e
+              fechamento.
+            </p>
+            <p>
+              Em vez de gastar 20 minutos explicando INCC e tabela price no
+              WhatsApp, você manda o link e o cliente já chega na próxima
+              conversa <strong>sabendo o que está pagando</strong>.
+            </p>
+          </FaqItem>
+
+          <FaqItem q="E se o concorrente mostra números menores e mais bonitos?">
+            <p>
+              Quando ele assinar e descobrir o INCC real lá na frente, vai
+              voltar pra você — e desta vez sem confiança no concorrente.
+              Vendedor que mostra o número real ganha cliente fiel; vendedor
+              que esconde, ganha cliente que cancela ou vira juiz no Procon.
+            </p>
+            <p>
+              Você pode <strong>usar a transparência como argumento</strong>:
+              &quot;todo simulador mostra a parcela &apos;de hoje&apos;, mas o
+              meu mostra como ela cresce com INCC. Compare antes de assinar
+              qualquer coisa&quot;.
+            </p>
+          </FaqItem>
+
+          <FaqItem q="Funciona com qualquer construtora ou contrato?">
+            <p>
+              Sim. O Habitando é uma <strong>calculadora genérica</strong> —
+              você preenche os campos do contrato (valor, ato, parcelas
+              mensais, INCC, anuais, ITBI) e ele simula. Vale para MRV, Cury,
+              Tegra, construtora local, contrato à parte com proprietário, etc.
+            </p>
+            <p>
+              No plano Imobiliária, você pré-cadastra os empreendimentos que
+              vende e o cliente entra com os valores já preenchidos.
+            </p>
+          </FaqItem>
+        </FaqGroup>
+
+        {/* Bloco 2: operacional */}
+        <FaqGroup label="Operacional · dia a dia">
+          <FaqItem q="Cliente preenche sozinho ou eu preciso explicar?">
+            <p>
+              Sozinho. Os campos têm tooltips explicando cada termo
+              (&quot;parcela mensal&quot;, &quot;ato&quot;, &quot;INCC&quot;) e
+              o resultado é visual: tabela mês a mês + indicadores + parecer
+              automático. Cliente leigo entende em 5 minutos.
+            </p>
+            <p>
+              Você só intervém para tirar a dúvida final ou negociar valores
+              alternativos — comparando 2-4 cenários lado a lado.
             </p>
           </FaqItem>
 
           <FaqItem q="Cliente sai do meu funil ao entrar na ferramenta?">
             <p>
               Não. A ferramenta é <strong>sua</strong> (white-label). O cliente
-              vê a sua marca, sua cor, seu nome. Quando ele preenche WhatsApp/
-              email pra ver o resultado completo, vira lead seu.
+              vê sua marca, sua cor, seu nome. Quando ele preenche WhatsApp/
+              email para ver o relatório completo, vira{" "}
+              <strong>lead seu</strong> — você recebe notificação na hora.
             </p>
           </FaqItem>
 
           <FaqItem q="Como recebo os leads?">
             <p>
-              Você recebe uma notificação por WhatsApp/email assim que o cliente
+              Notificação por WhatsApp ou e-mail no momento em que o cliente
               termina a simulação e deixa contato. Os dados ficam num painel
-              simples dentro da sua área — você pode exportar em planilha (CSV)
-              quando quiser.
+              simples — você exporta em planilha (CSV) quando quiser.
             </p>
             <p>
-              Sem integração obrigatória com nenhuma ferramenta externa. Você
-              continua usando o que já tem para gerenciar contatos.
+              Sem integração obrigatória com CRM externo. Você continua usando
+              o que já tem para gerenciar relacionamento.
             </p>
           </FaqItem>
 
+          <FaqItem q="Funciona no celular do cliente?">
+            <p>
+              Sim. O simulador é responsivo — cliente preenche pelo celular e
+              vê tabela/gráfico/relatório com a mesma clareza. O PDF gerado
+              também abre limpo em qualquer celular.
+            </p>
+          </FaqItem>
+        </FaqGroup>
+
+        {/* Bloco 3: setup e pricing */}
+        <FaqGroup label="Pricing e setup">
           <FaqItem q="Quanto tempo leva para colocar a minha marca?">
             <p>
-              Plano Corretor: 5 minutos (logo + cor). Plano Imobiliária: até 24h
-              (domínio próprio + tema personalizado). Sem precisar de
-              desenvolvedor.
+              <strong>Plano Corretor:</strong> 5 minutos (logo + cor primária).
+            </p>
+            <p>
+              <strong>Plano Imobiliária:</strong> até 24h (domínio próprio +
+              tema personalizado + cadastro dos empreendimentos). Sem precisar
+              de desenvolvedor.
             </p>
           </FaqItem>
 
-          <FaqItem q="Posso ver como funciona antes?">
+          <FaqItem q="Tem trial? Posso cancelar quando quiser?">
             <p>
-              Sim — a{" "}
-              <Link
-                href="/simulador"
-                className="text-accent underline hover:text-accent/80"
-              >
-                versão demo
-              </Link>{" "}
-              está aberta para você testar a calculadora. A versão paga adiciona
-              white-label, captura de leads, PDF, cadastro de empreendimentos e
-              painel.
+              <strong>Trial de 14 dias sem cartão.</strong> Se quiser
+              continuar, cobramos a partir do 15º dia. Sem cobrança automática
+              surpresa.
             </p>
-          </FaqItem>
-
-          <FaqItem q="Posso cancelar quando quiser?">
             <p>
-              Sim. Mensalidade sem fidelidade. Trial de 14 dias sem cartão. Se
-              cancelar, mantém os dados por 30 dias para exportar. Sem letra
-              miúda.
+              Mensalidade <strong>sem fidelidade</strong>: cancela com 1 click.
+              Mantém os dados por 30 dias para exportar. Zero letra miúda.
             </p>
           </FaqItem>
 
@@ -627,13 +680,56 @@ function FAQSection() {
             <p>
               Os primeiros corretores/imobiliárias travam o preço atual{" "}
               (<strong>R$ 49 / R$ 199 / R$ 49 por usuário</strong>). Quando os
-              valores subirem (R$ 79 / R$ 299), você mantém o de fundador para
-              sempre — mesmo se permanecer na assinatura por anos.
+              valores subirem para os preços públicos (R$ 79 / R$ 299), você
+              mantém o preço de fundador <strong>vitalício</strong> — mesmo
+              que fique 5 anos na assinatura.
+            </p>
+            <p>
+              Nossa intenção: começar com 20-50 fundadores que ajudam a moldar
+              o produto, depois abrir para o mercado com o preço cheio. Você
+              ganha o desconto e nós ganhamos feedback real.
             </p>
           </FaqItem>
+        </FaqGroup>
+
+        <div className="mt-10 text-center text-[13px] text-ink-muted">
+          Outras dúvidas? Manda pelo{" "}
+          <a
+            href="https://wa.me/5511993235002?text=Tenho%20uma%20d%C3%BAvida%20sobre%20o%20Habitando"
+            target="_blank"
+            rel="noreferrer"
+            className="text-accent underline hover:text-accent/80"
+          >
+            WhatsApp
+          </a>{" "}
+          ou veja a{" "}
+          <Link
+            href="/faq"
+            className="text-accent underline hover:text-accent/80"
+          >
+            documentação técnica
+          </Link>{" "}
+          (INCC, ato, ITBI explicados em detalhe).
         </div>
       </div>
     </section>
+  );
+}
+
+function FaqGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-8 last:mb-0">
+      <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted mb-3 pl-1">
+        {label}
+      </div>
+      <div className="space-y-2">{children}</div>
+    </div>
   );
 }
 

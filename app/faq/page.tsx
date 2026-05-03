@@ -483,14 +483,24 @@ function Hero() {
       <div className="font-mono text-[11px] tracking-[0.18em] uppercase text-ink-muted mb-3">
         Documentação
       </div>
+      <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted mb-3">
+        Documentação técnica
+      </div>
       <h1 className="font-serif text-4xl md:text-5xl leading-tight text-ink mb-4">
-        Perguntas frequentes
+        Como o cálculo funciona
       </h1>
-      <p className="text-ink-soft text-lg leading-relaxed max-w-2xl">
-        Como o cálculo funciona — e por que o seu cliente vai entender melhor
-        o contrato. Atenção especial para o{" "}
-        <strong className="text-ink">INCC</strong>: é o índice que faz a
-        diferença entre uma simulação honesta e a surpresa na entrega.
+      <p className="text-ink-soft text-lg leading-relaxed max-w-2xl mb-3">
+        Esta é a base técnica do simulador — útil para você apresentar com
+        propriedade ao cliente e mostrar o diferencial do{" "}
+        <strong className="text-ink">INCC sobre saldo devedor</strong>{" "}
+        (o índice que separa uma simulação honesta da surpresa na entrega).
+      </p>
+      <p className="text-ink-soft text-[13.5px] leading-relaxed max-w-2xl">
+        Procurando preço, planos ou trial? Veja a{" "}
+        <a href="/" className="text-accent underline hover:text-accent/80">
+          página principal
+        </a>
+        .
       </p>
 
       <nav className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
