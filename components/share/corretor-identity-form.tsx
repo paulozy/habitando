@@ -1,13 +1,13 @@
 "use client";
 
-import * as React from "react";
-import { X } from "lucide-react";
 import { Button, Input, Label } from "@/components/ui/primitives";
+import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import {
   CorretorIdentitySchema,
   type CorretorIdentity,
 } from "@/lib/url-state";
-import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { X } from "lucide-react";
+import * as React from "react";
 
 interface CorretorIdentityFormProps {
   open: boolean;
@@ -117,8 +117,7 @@ export function CorretorIdentityForm({
               />
             </div>
             <p className="text-[11.5px] text-ink-muted mt-1.5">
-              Digite só DDD + número (ex: 11999998888). O +55 entra
-              automaticamente.
+              Digite só DDD + número (ex: 11999998888)
             </p>
           </div>
 

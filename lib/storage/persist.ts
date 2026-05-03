@@ -26,46 +26,60 @@ export function ScenarioPersist() {
     // 1. Tenta hidratar do URL
     const url = new URL(window.location.href);
     const s = url.searchParams.get("s");
+    let hydratedFromURL = false;
     if (s) {
       const dec = decodeScenarios(s);
       if (dec.ok && dec.scenarios) {
         useScenariosStore.getState().replaceAll(dec.scenarios);
-        // Se o link traz identidade de corretor, salva como "received"
-        // para o cliente poder devolver com a mesma identidade.
+        hydratedFromURL = true;
+        // Se o link traz identidade de corretor, decide se ativa modo
+        // cliente (banner + scroll) ou se é o próprio corretor abrindo:
+        // - link próprio em outra aba pra testar
+        // - resposta vinda do cliente (que carrega a mesma identidade)
+        // Quando whatsapp do link == whatsapp do `own`, NÃO ativa modo
+        // cliente. E limpa um "received" antigo se houver.
         if (dec.corretor) {
-          useCorretorStore.getState().setReceived(dec.corretor);
-          // Cliente recebendo cenário pronto: leva direto pra seção de
-          // renda/gastos, que é o que ele precisa preencher/conferir.
-          // setTimeout pra esperar o React renderizar a seção no DOM.
-          window.setTimeout(() => {
-            const target = document.getElementById("secao-orcamento");
-            target?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }, 400);
+          const corretorStore = useCorretorStore.getState();
+          const isSelf =
+            corretorStore.own?.whatsapp === dec.corretor.whatsapp;
+          if (isSelf) {
+            if (corretorStore.received) {
+              corretorStore.clearReceived();
+            }
+          } else {
+            corretorStore.setReceived(dec.corretor);
+            // Cliente recebendo cenário: leva direto pra renda/gastos.
+            window.setTimeout(() => {
+              const target = document.getElementById("secao-orcamento");
+              target?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 400);
+          }
         }
         // Limpa o param para não sobrescrever futuras edições
         url.searchParams.delete("s");
         window.history.replaceState({}, "", url.toString());
-        return;
       }
     }
 
-    // 2. localStorage (com migração)
-    try {
-      const raw = window.localStorage.getItem(KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const result = migrarPayload(parsed);
-        if (result.ok && result.scenarios && result.scenarios.length > 0) {
-          useScenariosStore.getState().replaceAll(result.scenarios);
-        } else if (!result.ok) {
-          // Schema inválido — descarta e segue com default. Limpa para evitar loop.
-          console.warn("Cenários no localStorage inválidos, descartando:", result.error);
-          window.localStorage.removeItem(KEY);
+    // 2. localStorage (com migração) — só se não veio do URL
+    if (!hydratedFromURL) {
+      try {
+        const raw = window.localStorage.getItem(KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const result = migrarPayload(parsed);
+          if (result.ok && result.scenarios && result.scenarios.length > 0) {
+            useScenariosStore.getState().replaceAll(result.scenarios);
+          } else if (!result.ok) {
+            // Schema inválido — descarta e segue com default. Limpa para evitar loop.
+            console.warn("Cenários no localStorage inválidos, descartando:", result.error);
+            window.localStorage.removeItem(KEY);
+          }
         }
+      } catch {
+        // JSON inválido — descarta
+        window.localStorage.removeItem(KEY);
       }
-    } catch {
-      // JSON inválido — descarta
-      window.localStorage.removeItem(KEY);
     }
 
     // Subscribe + debounce write (sempre na versão atual)
