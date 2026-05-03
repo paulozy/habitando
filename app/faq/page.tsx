@@ -466,7 +466,7 @@ function Header() {
             Início
           </Link>
           <Link href="/simulador" className="hover:text-white transition-colors">
-            Simulador
+            Demo
           </Link>
           <Link href="/faq" className="text-white">
             FAQ
@@ -487,9 +487,10 @@ function Hero() {
         Perguntas frequentes
       </h1>
       <p className="text-ink-soft text-lg leading-relaxed max-w-2xl">
-        Tudo que você precisa saber sobre o simulador, com atenção especial
-        para o <strong className="text-ink">INCC</strong> — o índice que faz a
-        diferença entre uma simulação honesta e uma surpresa na entrega.
+        Como o cálculo funciona — e por que o seu cliente vai entender melhor
+        o contrato. Atenção especial para o{" "}
+        <strong className="text-ink">INCC</strong>: é o índice que faz a
+        diferença entre uma simulação honesta e a surpresa na entrega.
       </p>
 
       <nav className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 text-[12.5px]">
@@ -613,16 +614,25 @@ function CTA() {
           Pronto para colocar os números no papel?
         </h2>
         <p className="text-[#bcc6d0] mb-6 max-w-xl">
-          Cinco minutos preenchendo um cenário e você sai com a confiança de
-          quem leu o contrato antes de assinar.
+          Cinco minutos preenchendo um cenário de demonstração e você entende
+          como vender com transparência. Quando estiver pronto, entre na lista
+          de espera.
         </p>
-        <Link
-          href="/simulador"
-          className="inline-flex items-center gap-2 bg-accent text-ink font-semibold px-6 py-3 rounded-md hover:bg-accent/90 transition-colors"
-        >
-          Abrir o simulador
-          <span aria-hidden>→</span>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-3 justify-start sm:items-center">
+          <Link
+            href="/simulador"
+            className="inline-flex items-center justify-center gap-2 bg-accent text-ink font-semibold px-6 py-3 rounded-md hover:bg-accent/90 transition-colors"
+          >
+            Ver demo da ferramenta
+            <span aria-hidden>→</span>
+          </Link>
+          <Link
+            href="/#waitlist"
+            className="inline-flex items-center justify-center gap-2 text-white border border-white/20 px-6 py-3 rounded-md hover:bg-white/10 transition-colors"
+          >
+            Entrar na lista de espera
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -640,7 +650,7 @@ function Footer() {
             Início
           </Link>
           <Link href="/simulador" className="hover:text-white transition-colors">
-            Simulador
+            Demo
           </Link>
           <Link href="/faq" className="text-white">
             FAQ

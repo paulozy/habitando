@@ -198,11 +198,21 @@ function Header({
                 FAQ
               </a>
             </div>
-            <h1 className="font-serif text-3xl md:text-5xl leading-tight">
-              Imóvel na planta · fluxo configurável
+            <h1 className="font-serif text-3xl md:text-5xl leading-tight flex items-center gap-3 flex-wrap">
+              Demo da ferramenta
+              <span className="font-sans text-[11px] font-mono tracking-[0.15em] uppercase border border-accent/40 text-accent px-2.5 py-1 rounded-full">
+                🎬 Demonstração
+              </span>
             </h1>
             <p className="text-[#8fa3b8] text-sm mt-1.5">
-              Até 4 cenários · até 4 compradores · INCC · TEO bancário · ITBI · documentação diluída.
+              Esta é a calculadora — quer com sua marca, captura de leads e
+              PDF profissional?{" "}
+              <a
+                href="/#waitlist"
+                className="text-accent hover:text-accent/80 underline"
+              >
+                Entre na lista de espera →
+              </a>
             </p>
           </div>
           <div className="flex flex-col gap-3 items-end">
