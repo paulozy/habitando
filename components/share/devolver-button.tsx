@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/primitives";
 import { buildShareURL } from "@/lib/url-state";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { cn } from "@/lib/utils";
 
 interface DevolverButtonProps {
@@ -16,8 +17,11 @@ interface DevolverButtonProps {
 
 /**
  * Renderiza apenas se o cliente abriu um link com identidade de corretor
- * (`useCorretorStore.received`). Ao clicar, abre o WhatsApp do corretor com o
- * cenário atual já em formato de link.
+ * (`useCorretorStore.received`). Ao clicar, abre o WhatsApp do corretor com:
+ * - Link `/simulador/?c=<id>` quando o cenário veio do Supabase (estado já
+ *   sincronizado pelo push debounced)
+ * - Link `/simulador/?s=<blob>` quando é um cenário legacy sem remoteId
+ *   (encoded local)
  */
 export function DevolverButton({
   className,
@@ -25,12 +29,15 @@ export function DevolverButton({
 }: DevolverButtonProps) {
   const received = useCorretorStore((s) => s.received);
   const scenarios = useScenariosStore((s) => s.scenarios);
+  const remoteId = useShareMetaStore((s) => s.remoteId);
 
   if (!received) return null;
 
   const handleClick = () => {
     if (typeof window === "undefined") return;
-    const link = buildShareURL(scenarios, received);
+    const link = remoteId
+      ? `${window.location.origin}/simulador/?c=${remoteId}`
+      : buildShareURL(scenarios, received);
     const msg = `Olá ${received.nome}, ajustei aqui no Habitando o cenário: ${link}`;
     const url = `https://wa.me/${received.whatsapp}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener");
