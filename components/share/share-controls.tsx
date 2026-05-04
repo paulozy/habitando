@@ -13,7 +13,7 @@ import {
   type CorretorIdentity,
 } from "@/lib/url-state";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Link2, UserCog } from "lucide-react";
+import { Check, FileText, Link2 } from "lucide-react";
 import * as React from "react";
 import { CorretorIdentityForm } from "./corretor-identity-form";
 
@@ -123,32 +123,6 @@ export function ShareControls() {
         <FileText className="h-3.5 w-3.5" />
         Exportar PDF
       </Button>
-      {profile ? (
-        <a
-          href="/meus-links/"
-          className="inline-flex items-center gap-2 px-3 h-8 rounded-md text-sm font-medium border border-white/20 text-white hover:bg-white/10 transition-colors"
-          title={`Logado como ${profile.nome} — meus links`}
-        >
-          <UserCog className="h-3.5 w-3.5" />
-          {profile.nome}
-        </a>
-      ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setIdentityOpen(true)}
-          className="bg-transparent border-white/20 text-white hover:bg-white/10"
-          title={
-            own
-              ? `Identidade configurada: ${own.nome}`
-              : "Configure seu nome e WhatsApp pra aparecer no link"
-          }
-        >
-          <UserCog className="h-3.5 w-3.5" />
-          {own ? own.nome : "Minha identidade"}
-        </Button>
-      )}
       {feedback && (
         <span
           className={cn(
