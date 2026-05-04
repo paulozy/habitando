@@ -5,6 +5,7 @@ import { useWatch } from "react-hook-form";
 import { Lock } from "lucide-react";
 import { fmt, type SimulacaoConfig } from "@/lib/calculation-engine";
 import { Card, CardBody, CardHeader, FieldHelp } from "@/components/ui/primitives";
+import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,8 +15,11 @@ import { cn } from "@/lib/utils";
  */
 export function CenarioSummary() {
   const config = useWatch<SimulacaoConfig>() as SimulacaoConfig;
+  const received = useCorretorStore((s) => s.received);
 
   if (!config) return null;
+
+  const corretorNome = received?.nome ?? "o corretor";
 
   return (
     <Card>
@@ -23,7 +27,7 @@ export function CenarioSummary() {
         title={
           <div className="flex items-center gap-2">
             <Lock className="h-3.5 w-3.5 text-ink-muted" aria-hidden />
-            <span>O que {config.rotulo ?? "o corretor"} propôs</span>
+            <span>O que {corretorNome} propôs</span>
           </div>
         }
         subtitle="Valores definidos pelo corretor — pra ajustar, fale com ele."
