@@ -49,6 +49,13 @@ vi.mock("@/lib/supabase/client", () => ({
           Promise.resolve(
             listResults.shift() ?? { data: [], error: null },
           ),
+        // Pra listAllLeads: select().order().limit()
+        order: () => ({
+          limit: () =>
+            Promise.resolve(
+              listResults.shift() ?? { data: [], error: null },
+            ),
+        }),
       }),
       update: (_patch: unknown) => ({
         eq: () =>
@@ -58,8 +65,14 @@ vi.mock("@/lib/supabase/client", () => ({
   }),
 }));
 
-const { submitLead, listLeadsForShare, countLeadsByShare, LeadError } =
-  await import("@/lib/leads/api");
+const {
+  submitLead,
+  listLeadsForShare,
+  listAllLeads,
+  updateLeadStatus,
+  countLeadsByShare,
+  LeadError,
+} = await import("@/lib/leads/api");
 
 beforeEach(() => {
   insertResults.length = 0;
@@ -179,6 +192,56 @@ describe("listLeadsForShare", () => {
     const result = await listLeadsForShare("abc");
     expect(result).toHaveLength(1);
     expect(result[0].nome).toBe("Maria");
+  });
+});
+
+describe("listAllLeads", () => {
+  it("retorna lista vazia quando sem leads", async () => {
+    listResults.push({ data: [], error: null });
+    const result = await listAllLeads();
+    expect(result).toEqual([]);
+  });
+
+  it("retorna leads ordenados por created_at desc", async () => {
+    listResults.push({
+      data: [
+        { id: "l1", nome: "Ana", status: "novo" },
+        { id: "l2", nome: "Bruno", status: "respondido" },
+      ],
+      error: null,
+    });
+    const result = await listAllLeads();
+    expect(result).toHaveLength(2);
+    expect(result[0].nome).toBe("Ana");
+  });
+
+  it("propaga erro de rede", async () => {
+    listResults.push({
+      data: null,
+      error: { message: "network" },
+    });
+    await expect(listAllLeads()).rejects.toThrow(LeadError);
+  });
+});
+
+describe("updateLeadStatus", () => {
+  it("não chama Supabase com leadId vazio", async () => {
+    await updateLeadStatus("", "respondido");
+    expect(updateResults).toHaveLength(0);
+  });
+
+  it("happy path retorna void", async () => {
+    updateResults.push({ error: null });
+    await expect(
+      updateLeadStatus("lead-1", "respondido"),
+    ).resolves.toBeUndefined();
+  });
+
+  it("propaga erro como LeadError", async () => {
+    updateResults.push({ error: { message: "denied" } });
+    await expect(
+      updateLeadStatus("lead-1", "ignorado"),
+    ).rejects.toThrow(LeadError);
   });
 });
 

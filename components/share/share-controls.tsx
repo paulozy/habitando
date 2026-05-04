@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/primitives";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { updateLeadStatus } from "@/lib/leads/api";
 import { createShare, ShareError } from "@/lib/share/api";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
@@ -23,6 +24,8 @@ export function ShareControls() {
   const profile = useAuthStore((s) => s.profile);
   const session = useAuthStore((s) => s.session);
   const setRemoteId = useShareMetaStore((s) => s.setRemoteId);
+  const pendingLeadId = useShareMetaStore((s) => s.pendingLeadId);
+  const setPendingLeadId = useShareMetaStore((s) => s.setPendingLeadId);
 
   // Quando autenticado, profile vira a fonte da identidade do corretor.
   // Senão, cai no localStorage (own anônimo).
@@ -59,8 +62,18 @@ export function ShareControls() {
           scenarios,
           corretor: identityForLink ?? undefined,
           ownerId: session?.user.id,
+          leadId: pendingLeadId ?? undefined,
         });
         setRemoteId(id);
+        // Após share criado, limpa pendingLeadId e auto-marca lead
+        // como respondido (corretor de fato concluiu o fluxo).
+        if (pendingLeadId) {
+          const leadId = pendingLeadId;
+          setPendingLeadId(null);
+          void updateLeadStatus(leadId, "respondido").catch(() => {
+            /* falha em update silencioso — não trava UX */
+          });
+        }
         // Quando o corretor tem slug configurado, gera URL vanity branded:
         // /c/<slug>/<id>. Senão, fallback pro short link tradicional.
         const url = profile?.slug
@@ -82,7 +95,14 @@ export function ShareControls() {
         setBusy(false);
       }
     },
-    [scenarios, setRemoteId, session?.user.id, profile?.slug],
+    [
+      scenarios,
+      setRemoteId,
+      session?.user.id,
+      profile?.slug,
+      pendingLeadId,
+      setPendingLeadId,
+    ],
   );
 
   const handleShare = async () => {

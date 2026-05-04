@@ -53,6 +53,7 @@ import { BrandedShell } from "@/components/branding/branded-shell";
 import { useBrandingStore } from "@/lib/branding/use-branding-store";
 import { ScenarioPersist } from "@/lib/storage/persist";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -62,6 +63,20 @@ export default function Home() {
   const update = useScenariosStore((s) => s.update);
   const add = useScenariosStore((s) => s.add);
   const replaceAll = useScenariosStore((s) => s.replaceAll);
+  const setPendingLeadId = useShareMetaStore((s) => s.setPendingLeadId);
+
+  // Captura ?lead=<id> da URL e armazena no store. Usado por
+  // share-controls.doShare pra setar lead_id no novo share.
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const leadId = url.searchParams.get("lead");
+    if (leadId) {
+      setPendingLeadId(leadId);
+      url.searchParams.delete("lead");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [setPendingLeadId]);
 
   const active = scenarios.find((s) => s.id === activeId)!;
 
@@ -98,6 +113,7 @@ export default function Home() {
       <ScenarioPersist />
       <DevolverButton variant="sticky" />
       <BrandingShellOuter className="flex flex-col min-h-full pb-20 md:pb-0">
+        <PendingLeadBanner />
         <Header
           onResetAtivo={() => {
             const cfg = defaultConfig();
@@ -198,6 +214,68 @@ function BrandedWordmark({
         />
       )}
       <span className="text-accent">{nome}</span>
+    </div>
+  );
+}
+
+/**
+ * Banner mostrado quando o corretor tá criando cenário pra um lead
+ * específico (veio de /leads). Indica visualmente o contexto.
+ */
+function PendingLeadBanner() {
+  const pendingLeadId = useShareMetaStore((s) => s.pendingLeadId);
+  const [leadInfo, setLeadInfo] = React.useState<{
+    nome: string | null;
+    whatsapp: string | null;
+    email: string | null;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (!pendingLeadId) {
+      setLeadInfo(null);
+      return;
+    }
+    let cancelled = false;
+    // Lazy import pra não acoplar ao bundle do simulador
+    import("@/lib/leads/api").then(({ listAllLeads }) => {
+      listAllLeads()
+        .then((leads) => {
+          if (cancelled) return;
+          const found = leads.find((l) => l.id === pendingLeadId);
+          if (found) {
+            setLeadInfo({
+              nome: found.nome,
+              whatsapp: found.whatsapp,
+              email: found.email,
+            });
+          }
+        })
+        .catch(() => {
+          /* ignore — banner só não aparece */
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingLeadId]);
+
+  if (!pendingLeadId || !leadInfo) return null;
+
+  const contato = leadInfo.whatsapp
+    ? `+${leadInfo.whatsapp}`
+    : (leadInfo.email ?? "sem contato");
+
+  return (
+    <div className="bg-accent text-ink px-4 md:px-8 py-2.5 text-[13px] flex items-center justify-center gap-2 flex-wrap">
+      <span aria-hidden>✨</span>
+      <span>
+        Criando cenário pro lead{" "}
+        <strong>{leadInfo.nome ?? "sem nome"}</strong>
+        <span className="font-mono text-[12px] mx-2 opacity-80">
+          ({contato})
+        </span>
+        — ao clicar Compartilhar, o link será vinculado a esse lead.
+      </span>
     </div>
   );
 }

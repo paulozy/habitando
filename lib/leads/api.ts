@@ -14,6 +14,8 @@ export class LeadError extends Error {
   }
 }
 
+export type LeadStatus = "novo" | "respondido" | "ignorado";
+
 export interface LeadRow {
   id: string;
   share_id: string;
@@ -25,6 +27,7 @@ export interface LeadRow {
   consent_at: string;
   user_agent: string | null;
   payload_snapshot: unknown;
+  status: LeadStatus;
   created_at: string;
   updated_at: string;
 }
@@ -133,6 +136,41 @@ export async function listLeadsForShare(
     throw new LeadError("Erro ao carregar leads.", error);
   }
   return (data ?? []) as LeadRow[];
+}
+
+/**
+ * Lista todos leads do owner logado, mais recentes primeiro.
+ * Pra página /leads (workflow ativo do corretor).
+ */
+export async function listAllLeads(): Promise<LeadRow[]> {
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(500);
+  if (error) {
+    throw new LeadError("Erro ao carregar leads.", error);
+  }
+  return (data ?? []) as LeadRow[];
+}
+
+/**
+ * Atualiza o status de um lead (RLS garante owner_id = auth.uid()).
+ */
+export async function updateLeadStatus(
+  leadId: string,
+  status: LeadStatus,
+): Promise<void> {
+  if (!leadId) return;
+  const sb = getSupabase();
+  const { error } = await sb
+    .from(TABLE)
+    .update({ status })
+    .eq("id", leadId);
+  if (error) {
+    throw new LeadError("Erro ao atualizar status do lead.", error);
+  }
 }
 
 /**

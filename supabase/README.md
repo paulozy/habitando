@@ -15,6 +15,7 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
      - Repete pra `migrations/0002_profiles_and_owner.sql`
      - Repete pra `migrations/0003_branding.sql` (cria bucket Storage automaticamente)
      - Repete pra `migrations/0004_leads.sql`
+     - Repete pra `migrations/0005_leads_status_and_share_link.sql`
    - **Opção B — CLI** (recomendado pra repositório versionado):
      ```bash
      # De dentro de web/ (onde está este supabase/ folder)
@@ -67,6 +68,7 @@ No Studio (Project → Table Editor → shares), você deve ver a row criada.
 | `id` | `text` PK | nanoid(10), URL-safe |
 | `payload` | `jsonb` | SharePayload v6 (scenarios + corretor opcional) |
 | `owner_id` | `uuid` (FK auth.users) | nullable — null = anônimo legacy |
+| `lead_id` | `uuid` (FK leads) | nullable — vincula cenário criado pra um lead específico |
 | `created_at` | `timestamptz` | default `now()` |
 | `updated_at` | `timestamptz` | trigger bumpa em todo `update` |
 
@@ -111,6 +113,7 @@ No Studio (Project → Table Editor → shares), você deve ver a row criada.
 | `consent_at` | `timestamptz` | quando deu consentimento |
 | `user_agent` | `text?` | informativo |
 | `payload_snapshot` | `jsonb?` | scenarios que cliente viu no momento |
+| `status` | `text` | `novo` (default) \| `respondido` \| `ignorado` |
 | `created_at`, `updated_at` | `timestamptz` | |
 
 **Unique index** `(share_id, coalesce(email, whatsapp))` — dedupe via upsert.
