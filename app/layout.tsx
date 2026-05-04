@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
-import { DM_Sans, DM_Serif_Display, DM_Mono } from "next/font/google";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
+import { RefTracker } from "@/app/ref-tracker";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import { DM_Mono, DM_Sans, DM_Serif_Display } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -43,6 +45,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <AuthBootstrap />
         <NuqsAdapter>{children}</NuqsAdapter>
+        <Analytics />
+        <RefTracker />
       </body>
     </html>
   );
