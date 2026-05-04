@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Filas de mock ───────────────────────────────────────────────
-const upsertResults: Array<{
-  data: { id: string } | null;
-  error: { code?: string; message?: string } | null;
-}> = [];
 const insertResults: Array<{
   data: { id: string } | null;
   error: { code?: string; message?: string } | null;
@@ -19,24 +15,12 @@ const listResults: Array<{
   error: { message?: string } | null;
 }> = [];
 
-const upsertCalls: unknown[] = [];
 const insertCalls: unknown[] = [];
 
 vi.mock("@/lib/supabase/client", () => ({
   isSupabaseConfigured: () => true,
   getSupabase: () => ({
     from: (_table: string) => ({
-      upsert: (row: unknown, _opts: unknown) => {
-        upsertCalls.push(row);
-        return {
-          select: () => ({
-            single: () =>
-              Promise.resolve(
-                upsertResults.shift() ?? { data: { id: "new" }, error: null },
-              ),
-          }),
-        };
-      },
       insert: (row: unknown) => {
         insertCalls.push(row);
         return {
@@ -78,12 +62,10 @@ const { submitLead, listLeadsForShare, countLeadsByShare, LeadError } =
   await import("@/lib/leads/api");
 
 beforeEach(() => {
-  upsertResults.length = 0;
   insertResults.length = 0;
   selectMaybeResults.length = 0;
   updateResults.length = 0;
   listResults.length = 0;
-  upsertCalls.length = 0;
   insertCalls.length = 0;
 });
 
@@ -110,33 +92,33 @@ describe("submitLead", () => {
   });
 
   it("normaliza email (lowercase) e whatsapp (só dígitos)", async () => {
-    upsertResults.push({ data: { id: "lead-1" }, error: null });
+    insertResults.push({ data: { id: "lead-1" }, error: null });
     await submitLead({
       shareId: "abc",
       ownerId: "u-1",
       email: "  Foo@BAR.com  ",
       consentLgpd: true,
     });
-    const inserted = upsertCalls[0] as { email: string; whatsapp: string | null };
+    const inserted = insertCalls[0] as { email: string; whatsapp: string | null };
     expect(inserted.email).toBe("foo@bar.com");
     expect(inserted.whatsapp).toBeNull();
   });
 
   it("envia whatsapp limpo (só dígitos) quando passado", async () => {
-    upsertResults.push({ data: { id: "lead-1" }, error: null });
+    insertResults.push({ data: { id: "lead-1" }, error: null });
     await submitLead({
       shareId: "abc",
       ownerId: "u-1",
       whatsapp: "(11) 99999-8888",
       consentLgpd: true,
     });
-    const inserted = upsertCalls[0] as { email: string | null; whatsapp: string };
+    const inserted = insertCalls[0] as { email: string | null; whatsapp: string };
     expect(inserted.whatsapp).toBe("11999998888");
     expect(inserted.email).toBeNull();
   });
 
   it("retorna id do lead em happy path", async () => {
-    upsertResults.push({ data: { id: "lead-xyz" }, error: null });
+    insertResults.push({ data: { id: "lead-xyz" }, error: null });
     const result = await submitLead({
       shareId: "abc",
       ownerId: "u-1",
@@ -146,8 +128,27 @@ describe("submitLead", () => {
     expect(result.id).toBe("lead-xyz");
   });
 
+  it("trata duplicate (23505) atualizando lead existente", async () => {
+    // Insert falha com 23505
+    insertResults.push({
+      data: null,
+      error: { code: "23505", message: "duplicate" },
+    });
+    // Lookup do existente
+    selectMaybeResults.push({ data: { id: "lead-existing" }, error: null });
+    // Update silencioso
+    updateResults.push({ error: null });
+    const result = await submitLead({
+      shareId: "abc",
+      ownerId: "u-1",
+      email: "a@b.com",
+      consentLgpd: true,
+    });
+    expect(result.id).toBe("lead-existing");
+  });
+
   it("propaga erro genérico do Supabase", async () => {
-    upsertResults.push({
+    insertResults.push({
       data: null,
       error: { code: "42501", message: "RLS denied" },
     });
