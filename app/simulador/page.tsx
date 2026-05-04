@@ -24,13 +24,18 @@ import {
   TooltipProvider,
 } from "@/components/ui/primitives";
 import {
+  AnualBlock,
+  AtoBlock,
   CustosCartoriaisSection,
   EntradaSection,
+  EntradaTotalDerivada,
   EvolucaoSection,
   ImovelSection,
   NomeCenarioSection,
   OrcamentoSection,
+  ParcelaSugeridaBlock,
 } from "@/components/form/sections";
+import { CenarioSummary } from "@/components/form/cenario-summary";
 import {
   Alertas,
   FluxoChart,
@@ -214,6 +219,7 @@ function PoweredByFooter() {
 
 function ConfigPanel({ scenario }: { scenario: Scenario }) {
   const received = useCorretorStore((s) => s.received);
+  const isClienteMode = received !== null;
   const [highlightOrcamento, setHighlightOrcamento] = React.useState(false);
 
   // Quando o cliente abre via link compartilhado, pulsa a seção Orçamento
@@ -228,6 +234,42 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
     };
   }, [received]);
 
+  if (isClienteMode) {
+    return (
+      <div className="space-y-8">
+        <section className="space-y-6">
+          {/* Imóvel/Entrada base/Custos/Evolução em card resumo read-only */}
+          <CenarioSummary />
+
+          {/* Cliente pode mexer só em Ato + Anuais */}
+          <SectionHead>Ato e contribuições anuais</SectionHead>
+          <div className="space-y-3">
+            <AtoBlock />
+            <AnualBlock />
+            <ParcelaSugeridaBlock />
+            <EntradaTotalDerivada />
+          </div>
+
+          <div id="secao-orcamento" className="scroll-mt-24 space-y-4">
+            <ClienteBanner nome={received.nome} />
+            <div
+              className={cn(
+                "space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
+                highlightOrcamento &&
+                  "ring-2 ring-accent ring-offset-4 ring-offset-paper",
+              )}
+            >
+              <SectionHead>Orçamento</SectionHead>
+              <OrcamentoSection />
+            </div>
+          </div>
+        </section>
+
+        <ResultsPanel color={scenario.color} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <section className="space-y-6">
@@ -239,17 +281,8 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         <CustosCartoriaisSection />
 
         <div id="secao-orcamento" className="scroll-mt-24 space-y-4">
-          {received && <ClienteBanner nome={received.nome} />}
-          <div
-            className={cn(
-              "space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
-              highlightOrcamento &&
-                "ring-2 ring-accent ring-offset-4 ring-offset-paper",
-            )}
-          >
-            <SectionHead>Orçamento</SectionHead>
-            <OrcamentoSection />
-          </div>
+          <SectionHead>Orçamento</SectionHead>
+          <OrcamentoSection />
         </div>
 
         <SectionHead>Evolução de obra</SectionHead>
@@ -363,35 +396,41 @@ function Header({
           <div className="flex flex-col gap-3 items-end">
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <DevolverButton />
-              <ShareControls />
-              {!isClienteMode && <HeaderIdentitySlot />}
+              {!isClienteMode && (
+                <>
+                  <ShareControls />
+                  <HeaderIdentitySlot />
+                </>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/70 hover:text-white hover:bg-white/10"
-                onClick={onResetAtivo}
-              >
-                Resetar cenário
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/70 hover:text-white hover:bg-white/10"
-                onClick={() => {
-                  if (
-                    confirm(
-                      "Limpar TUDO: descarta todos os cenários e dados salvos. Continuar?",
-                    )
-                  ) {
-                    onLimparTudo();
-                  }
-                }}
-              >
-                Limpar tudo
-              </Button>
-            </div>
+            {!isClienteMode && (
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={onResetAtivo}
+                >
+                  Resetar cenário
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "Limpar TUDO: descarta todos os cenários e dados salvos. Continuar?",
+                      )
+                    ) {
+                      onLimparTudo();
+                    }
+                  }}
+                >
+                  Limpar tudo
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
