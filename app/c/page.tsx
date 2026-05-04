@@ -43,8 +43,22 @@ function Resolver() {
   const setLoading = useBrandingStore((s) => s.setLoading);
 
   React.useEffect(() => {
-    const slug = params.get("u");
-    const id = params.get("id");
+    // Tenta primeiro searchParams (formato direto: /c/?u=&id=).
+    // Se vazio, lê do pathname (rewrite Vercel/dev: /c/<slug>/<id>/ → URL
+    // do browser permanece com path-based, useSearchParams retorna vazio).
+    let slug = params.get("u");
+    let id = params.get("id");
+
+    if (!id && typeof window !== "undefined") {
+      const segments = window.location.pathname
+        .split("/")
+        .filter((s) => s.length > 0);
+      // Espera ["c", "<slug>", "<id>"]
+      if (segments[0] === "c" && segments.length >= 3) {
+        slug = segments[1];
+        id = segments[2];
+      }
+    }
 
     if (!id) {
       router.replace("/simulador/");
