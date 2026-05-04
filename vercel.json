@@ -3,6 +3,10 @@
     {
       "source": "/c/:slug/:id",
       "destination": "/c/?u=:slug&id=:id"
+    },
+    {
+      "source": "/c/:slug/:id/",
+      "destination": "/c/?u=:slug&id=:id"
     }
   ]
 }
