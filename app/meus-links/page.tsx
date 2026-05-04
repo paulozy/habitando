@@ -3,9 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Eye, LogOut, Mail, MessageCircle, Target } from "lucide-react";
-import { Button } from "@/components/ui/primitives";
-import { listOwnedShares, signOut } from "@/lib/auth/api";
+import { ExternalLink, Eye, Mail, MessageCircle, Target } from "lucide-react";
+import { listOwnedShares } from "@/lib/auth/api";
 import { countLeadsByShare, listLeadsForShare, type LeadRow } from "@/lib/leads/api";
 import {
   extractClienteSummary,
@@ -16,6 +15,7 @@ import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { encodeScenarios, migrarPayload, type CorretorIdentity } from "@/lib/url-state";
 import type { Scenario } from "@/lib/storage/use-scenarios-store";
 import { fmt } from "@/lib/calculation-engine";
+import { AppHeader } from "@/components/auth/app-header";
 
 interface ShareRow {
   id: string;
@@ -35,7 +35,6 @@ interface ShareDecoded {
 export default function MeusLinksPage() {
   const router = useRouter();
   const status = useAuthStore((s) => s.status);
-  const profile = useAuthStore((s) => s.profile);
 
   const [shares, setShares] = React.useState<ShareDecoded[] | null>(null);
   const [leadCounts, setLeadCounts] = React.useState<Record<string, number>>({});
@@ -72,11 +71,6 @@ export default function MeusLinksPage() {
     };
   }, [status]);
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push("/");
-  };
-
   if (status === "loading" || status === "anonymous") {
     return (
       <div className="min-h-full flex items-center justify-center text-ink-soft">
@@ -87,40 +81,7 @@ export default function MeusLinksPage() {
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="bg-ink text-white">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80"
-            >
-              Habitando
-            </Link>
-            <Link
-              href="/simulador/"
-              className="text-sm text-white/80 hover:text-white"
-            >
-              Novo cenário →
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {profile && (
-              <span className="text-sm text-white/80">
-                {profile.nome}
-              </span>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-white/70 hover:text-white hover:bg-white/10"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
         <h1 className="font-serif text-3xl md:text-4xl text-ink mb-2">

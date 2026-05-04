@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Upload, X } from "lucide-react";
 import { Button, Field, Input } from "@/components/ui/primitives";
+import { AppHeader } from "@/components/auth/app-header";
 import {
   checkSlugAvailability,
   deleteLogo,
@@ -145,30 +145,7 @@ export default function PerfilPage() {
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="bg-ink text-white">
-        <div className="max-w-[900px] mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80"
-            >
-              Habitando
-            </Link>
-            <Link
-              href="/meus-links/"
-              className="text-sm text-white/80 hover:text-white"
-            >
-              Meus links
-            </Link>
-            <Link
-              href="/simulador/"
-              className="text-sm text-white/80 hover:text-white"
-            >
-              Simulador
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="max-w-[900px] mx-auto px-6 md:px-10 py-10">
         <h1 className="font-serif text-3xl md:text-4xl text-ink mb-2">

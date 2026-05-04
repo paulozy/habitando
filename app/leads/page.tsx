@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import {
   Eye,
   ExternalLink,
-  LogOut,
   Mail,
   MessageCircle,
   MoreVertical,
   Sparkles,
-  Target,
 } from "lucide-react";
 import {
   Button,
@@ -20,7 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/primitives";
-import { signOut } from "@/lib/auth/api";
 import {
   listAllLeads,
   updateLeadStatus,
@@ -36,13 +33,13 @@ import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { encodeScenarios } from "@/lib/url-state";
 import { fmt } from "@/lib/calculation-engine";
+import { AppHeader } from "@/components/auth/app-header";
 import { RespostaRapidaPopover } from "@/components/leads/resposta-rapida-popover";
 import { cn } from "@/lib/utils";
 
 export default function LeadsPage() {
   const router = useRouter();
   const status = useAuthStore((s) => s.status);
-  const profile = useAuthStore((s) => s.profile);
 
   const [leads, setLeads] = React.useState<LeadRow[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -74,11 +71,6 @@ export default function LeadsPage() {
     );
   };
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push("/");
-  };
-
   if (status === "loading" || status === "anonymous") {
     return (
       <div className="min-h-full flex items-center justify-center text-ink-soft">
@@ -92,44 +84,7 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-full bg-paper">
-      <header className="bg-ink text-white">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-10 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="font-mono text-[12px] tracking-[0.2em] uppercase text-accent hover:text-accent/80"
-            >
-              Habitando
-            </Link>
-            <Link
-              href="/meus-links/"
-              className="text-sm text-white/80 hover:text-white"
-            >
-              Meus links
-            </Link>
-            <Link
-              href="/simulador/"
-              className="text-sm text-white/80 hover:text-white"
-            >
-              Novo cenário →
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {profile && (
-              <span className="text-sm text-white/80">{profile.nome}</span>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-white/70 hover:text-white hover:bg-white/10"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sair
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="max-w-[1200px] mx-auto px-6 md:px-10 py-10">
         <div className="flex items-baseline gap-3 mb-2 flex-wrap">
