@@ -45,3 +45,7 @@ next-env.d.ts
 /test-results/
 /demo/output/
 /demo/.share-url.txt
+
+# supabase CLI cache
+/supabase/.temp/
+/supabase/.branches/
