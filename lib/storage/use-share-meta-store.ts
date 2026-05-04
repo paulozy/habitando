@@ -3,6 +3,7 @@
 import { create } from "zustand";
 
 const STORAGE_KEY = "habitando:share-meta";
+const PENDING_LEAD_KEY = "habitando:pending-lead";
 
 export type SyncStatus = "idle" | "syncing" | "err";
 
@@ -12,8 +13,18 @@ interface ShareMetaState {
   syncStatus: SyncStatus;
   lastSyncError: string | null;
 
+  /**
+   * Lead que o corretor está respondendo no momento. Setado quando ele clica
+   * "Criar cenário pra esse lead" em /leads. Quando o share é criado, o
+   * createShare passa esse leadId pro DB e o store é limpo.
+   *
+   * Persistido em sessionStorage — não vale carregar entre sessions.
+   */
+  pendingLeadId: string | null;
+
   setRemoteId: (id: string | null) => void;
   setSyncStatus: (status: SyncStatus, error?: string | null) => void;
+  setPendingLeadId: (id: string | null) => void;
   clear: () => void;
 }
 
@@ -49,10 +60,33 @@ function saveToStorage(shape: PersistedShape) {
   }
 }
 
+function loadPendingLead(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage.getItem(PENDING_LEAD_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function savePendingLead(id: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (id === null) {
+      window.sessionStorage.removeItem(PENDING_LEAD_KEY);
+    } else {
+      window.sessionStorage.setItem(PENDING_LEAD_KEY, id);
+    }
+  } catch {
+    /* quota / disabled */
+  }
+}
+
 export const useShareMetaStore = create<ShareMetaState>((set) => ({
   ...loadFromStorage(),
   syncStatus: "idle",
   lastSyncError: null,
+  pendingLeadId: loadPendingLead(),
 
   setRemoteId: (id) => {
     saveToStorage({ remoteId: id });
@@ -61,9 +95,19 @@ export const useShareMetaStore = create<ShareMetaState>((set) => ({
   setSyncStatus: (status, error = null) => {
     set({ syncStatus: status, lastSyncError: error });
   },
+  setPendingLeadId: (id) => {
+    savePendingLead(id);
+    set({ pendingLeadId: id });
+  },
   clear: () => {
     saveToStorage({ remoteId: null });
-    set({ remoteId: null, syncStatus: "idle", lastSyncError: null });
+    savePendingLead(null);
+    set({
+      remoteId: null,
+      syncStatus: "idle",
+      lastSyncError: null,
+      pendingLeadId: null,
+    });
   },
 }));
 

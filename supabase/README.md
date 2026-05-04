@@ -8,10 +8,14 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
    - Region: South America (São Paulo) — menor latência pra usuários BR
    - Database password: anote, vai precisar pro `db push`
 
-2. **Aplicar migração**:
+2. **Aplicar migrações** (em ordem):
    - **Opção A — Studio (mais rápido)**:
      - Project → SQL Editor → New query
      - Copia conteúdo de `migrations/0001_create_shares.sql` → Run
+     - Repete pra `migrations/0002_profiles_and_owner.sql`
+     - Repete pra `migrations/0003_branding.sql` (cria bucket Storage automaticamente)
+     - Repete pra `migrations/0004_leads.sql`
+     - Repete pra `migrations/0005_leads_status_and_share_link.sql`
    - **Opção B — CLI** (recomendado pra repositório versionado):
      ```bash
      # De dentro de web/ (onde está este supabase/ folder)
@@ -34,6 +38,16 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
    - Project Settings → Environment Variables
    - Adicionar as 2 acima em **Production** e **Preview**
 
+6. **Configurar Auth no Dashboard** (Authentication →):
+   - **Providers → Email**:
+     - "Confirm email" **OFF** (validação rápida; re-habilita ao mandar email transacional)
+     - "Email & Password" **ON**
+   - **Sign Ups**: **Enabled** (default)
+   - **URL Configuration**:
+     - Site URL: `https://habitando.app` (ou seu domínio prod)
+     - Redirect URLs (adicionar): `http://localhost:3000`, `http://localhost:3000/auth/callback`, e a URL prod com `/auth/callback`
+   - **Sessions**: defaults estão OK (JWT expiry 1h, refresh token reutilizável)
+
 ## Validar
 
 Após setup:
@@ -48,14 +62,73 @@ No Studio (Project → Table Editor → shares), você deve ver a row criada.
 
 ## Schema
 
+### `shares`
 | Coluna | Tipo | Notas |
 |---|---|---|
 | `id` | `text` PK | nanoid(10), URL-safe |
 | `payload` | `jsonb` | SharePayload v6 (scenarios + corretor opcional) |
+| `owner_id` | `uuid` (FK auth.users) | nullable — null = anônimo legacy |
+| `lead_id` | `uuid` (FK leads) | nullable — vincula cenário criado pra um lead específico |
 | `created_at` | `timestamptz` | default `now()` |
 | `updated_at` | `timestamptz` | trigger bumpa em todo `update` |
 
-**RLS**: policies abertas pra `anon` em select/insert/update. Delete fica fechado por default-deny.
+**RLS dual world**:
+- Anon: read por id ✓, insert sem owner ✓, update preservando owner ✓ (cliente edita link do corretor sem trocar dono)
+- Authenticated: read tudo, insert/update próprios e órfãos
+
+### `profiles` (1:1 com `auth.users`)
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | `uuid` PK (FK auth.users) | cascade delete |
+| `nome` | `text` | preenchido via trigger no signup |
+| `whatsapp` | `text?` | 12-13 dígitos com DDI, opcional |
+| `slug` | `text?` UNIQUE | white-label vanity URL (`/c/<slug>/<id>`) |
+| `plano` | `text` | default `'free'` |
+| `logo_url` | `text?` | URL pública do Supabase Storage |
+| `cor_primaria` | `text?` | hex `#rrggbb` |
+| `tagline` | `text?` | até 80 chars |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+**RLS**: usuário só lê/edita o próprio profile diretamente. Branding (campos públicos) acessível via RPC pública.
+
+**Constraints de slug**:
+- Formato: `^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$` (3-30 chars, lowercase, sem hyphen no início/fim)
+- Não pode estar na lista de palavras reservadas (rotas + marcas BR)
+
+**RPC públicas** (acessíveis por anon):
+- `get_public_branding(profile_id uuid)` — retorna nome/logo/cor/tagline/slug, sem PII (whatsapp/email)
+- `get_public_branding_by_slug(_slug text)` — mesma coisa, lookup por slug
+
+**Trigger**: `on_auth_user_created` cria a row em `profiles` lendo `nome`/`whatsapp` de `raw_user_meta_data` (passado em `signUp options.data`).
+
+### `leads`
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | `uuid` PK | gen_random_uuid |
+| `share_id` | `text` (FK shares) | cascade delete |
+| `owner_id` | `uuid` (FK auth.users) | denormalized pra RLS perf |
+| `nome` | `text?` | opcional |
+| `email` / `whatsapp` | `text?` | check: pelo menos um obrigatório |
+| `consent_lgpd` | `boolean` | obrigatório true pra insert |
+| `consent_at` | `timestamptz` | quando deu consentimento |
+| `user_agent` | `text?` | informativo |
+| `payload_snapshot` | `jsonb?` | scenarios que cliente viu no momento |
+| `status` | `text` | `novo` (default) \| `respondido` \| `ignorado` |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+**Unique index** `(share_id, coalesce(email, whatsapp))` — dedupe via upsert.
+
+**RLS**:
+- `anon insert/update`: só com `consent_lgpd=true` E share existe + owner_id bate
+- `authenticated select/update/delete`: só `owner_id = auth.uid()` (corretor lê seus leads)
+
+### Storage: bucket `branding`
+
+- Public read (cliente vê logo sem login)
+- Path: `branding/logos/<user_id>/<filename>`
+- RLS: corretor só faz insert/update/delete em pasta com seu próprio `user_id`
+- Limite recomendado: 512 KB (resize client-side a 512px no maior lado antes de upload)
+- Formatos aceitos: PNG, WebP. SVG fora do MVP (precisa sanitização DOMPurify).
 
 ## Limites do free tier
 

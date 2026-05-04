@@ -1,21 +1,42 @@
 "use client";
 
 import { Button } from "@/components/ui/primitives";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
+import { updateLeadStatus } from "@/lib/leads/api";
 import { createShare, ShareError } from "@/lib/share/api";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
 import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { encodeScenarios } from "@/lib/url-state";
+import {
+  CorretorIdentitySchema,
+  encodeScenarios,
+  type CorretorIdentity,
+} from "@/lib/url-state";
 import { cn } from "@/lib/utils";
-import { Check, FileText, Link2, UserCog } from "lucide-react";
+import { Check, FileText, Link2 } from "lucide-react";
 import * as React from "react";
 import { CorretorIdentityForm } from "./corretor-identity-form";
 
 export function ShareControls() {
   const scenarios = useScenariosStore((s) => s.scenarios);
-  const own = useCorretorStore((s) => s.own);
+  const ownLocal = useCorretorStore((s) => s.own);
+  const profile = useAuthStore((s) => s.profile);
+  const session = useAuthStore((s) => s.session);
   const setRemoteId = useShareMetaStore((s) => s.setRemoteId);
+  const pendingLeadId = useShareMetaStore((s) => s.pendingLeadId);
+  const setPendingLeadId = useShareMetaStore((s) => s.setPendingLeadId);
+
+  // Quando autenticado, profile vira a fonte da identidade do corretor.
+  // Senão, cai no localStorage (own anônimo).
+  const own = React.useMemo<CorretorIdentity | null>(() => {
+    if (profile && profile.whatsapp) {
+      const candidate = { nome: profile.nome, whatsapp: profile.whatsapp };
+      const parsed = CorretorIdentitySchema.safeParse(candidate);
+      return parsed.success ? parsed.data : ownLocal;
+    }
+    return ownLocal;
+  }, [profile, ownLocal]);
 
   const [feedback, setFeedback] = React.useState<{
     tone: "ok" | "err";
@@ -40,9 +61,24 @@ export function ShareControls() {
         const { id } = await createShare({
           scenarios,
           corretor: identityForLink ?? undefined,
+          ownerId: session?.user.id,
+          leadId: pendingLeadId ?? undefined,
         });
         setRemoteId(id);
-        const url = `${window.location.origin}/simulador/?c=${id}`;
+        // Após share criado, limpa pendingLeadId e auto-marca lead
+        // como respondido (corretor de fato concluiu o fluxo).
+        if (pendingLeadId) {
+          const leadId = pendingLeadId;
+          setPendingLeadId(null);
+          void updateLeadStatus(leadId, "respondido").catch(() => {
+            /* falha em update silencioso — não trava UX */
+          });
+        }
+        // Quando o corretor tem slug configurado, gera URL vanity branded:
+        // /c/<slug>/<id>. Senão, fallback pro short link tradicional.
+        const url = profile?.slug
+          ? `${window.location.origin}/c/${profile.slug}/${id}`
+          : `${window.location.origin}/simulador/?c=${id}`;
         try {
           await navigator.clipboard.writeText(url);
           flash("ok", "Link copiado ✓");
@@ -59,7 +95,14 @@ export function ShareControls() {
         setBusy(false);
       }
     },
-    [scenarios, setRemoteId],
+    [
+      scenarios,
+      setRemoteId,
+      session?.user.id,
+      profile?.slug,
+      pendingLeadId,
+      setPendingLeadId,
+    ],
   );
 
   const handleShare = async () => {
@@ -74,9 +117,11 @@ export function ShareControls() {
   const handleExportPDF = () => {
     if (typeof window === "undefined") return;
     // PDF continua via ?s= (one-shot, sem Supabase) — relatório é
-    // self-contained, não muda mais depois de aberto.
+    // self-contained, não muda mais depois de aberto. Se o corretor tem
+    // slug, anexa ?u=<slug> pra branding aplicar.
     const encoded = encodeScenarios(scenarios, own ?? undefined);
-    const url = `${window.location.origin}/relatorio/?s=${encoded}`;
+    const slugParam = profile?.slug ? `&u=${profile.slug}` : "";
+    const url = `${window.location.origin}/relatorio/?s=${encoded}${slugParam}`;
     window.open(url, "_blank", "noopener");
   };
 
@@ -103,21 +148,6 @@ export function ShareControls() {
       >
         <FileText className="h-3.5 w-3.5" />
         Exportar PDF
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setIdentityOpen(true)}
-        className="bg-transparent border-white/20 text-white hover:bg-white/10"
-        title={
-          own
-            ? `Identidade configurada: ${own.nome}`
-            : "Configure seu nome e WhatsApp pra aparecer no link"
-        }
-      >
-        <UserCog className="h-3.5 w-3.5" />
-        {own ? own.nome : "Minha identidade"}
       </Button>
       {feedback && (
         <span

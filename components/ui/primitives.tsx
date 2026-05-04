@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import * as RadixTooltip from "@radix-ui/react-tooltip";
+import * as RadixPopover from "@radix-ui/react-popover";
+import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
 
 /* ============================================================
@@ -512,6 +514,121 @@ export function Tooltip({
     </RadixTooltip.Root>
   );
 }
+
+/* ============================================================
+ *  Popover (Radix UI) — wrapper estilizado para conteúdo rico
+ *  (CTA + separador + texto). Para menu semântico, prefira DropdownMenu.
+ * ============================================================ */
+export const Popover = RadixPopover.Root;
+export const PopoverTrigger = RadixPopover.Trigger;
+export const PopoverAnchor = RadixPopover.Anchor;
+
+interface PopoverContentProps
+  extends React.ComponentPropsWithoutRef<typeof RadixPopover.Content> {
+  className?: string;
+}
+
+export const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof RadixPopover.Content>,
+  PopoverContentProps
+>(function PopoverContent(
+  { className, sideOffset = 8, collisionPadding = 8, align = "end", ...props },
+  ref,
+) {
+  return (
+    <RadixPopover.Portal>
+      <RadixPopover.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
+        align={align}
+        className={cn(
+          "z-50 min-w-[220px] rounded-lg bg-card text-ink border border-border shadow-lg p-1.5",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+          className,
+        )}
+        {...props}
+      />
+    </RadixPopover.Portal>
+  );
+});
+
+/* ============================================================
+ *  DropdownMenu (Radix UI) — wrapper para menus de ação
+ * ============================================================ */
+export const DropdownMenu = RadixDropdownMenu.Root;
+export const DropdownMenuTrigger = RadixDropdownMenu.Trigger;
+
+export const DropdownMenuContent = React.forwardRef<
+  React.ElementRef<typeof RadixDropdownMenu.Content>,
+  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Content>
+>(function DropdownMenuContent(
+  { className, sideOffset = 8, collisionPadding = 8, align = "end", ...props },
+  ref,
+) {
+  return (
+    <RadixDropdownMenu.Portal>
+      <RadixDropdownMenu.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
+        align={align}
+        className={cn(
+          "z-50 min-w-[220px] rounded-lg bg-card text-ink border border-border shadow-lg p-1",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
+          className,
+        )}
+        {...props}
+      />
+    </RadixDropdownMenu.Portal>
+  );
+});
+
+export const DropdownMenuItem = React.forwardRef<
+  React.ElementRef<typeof RadixDropdownMenu.Item>,
+  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Item>
+>(function DropdownMenuItem({ className, ...props }, ref) {
+  return (
+    <RadixDropdownMenu.Item
+      ref={ref}
+      className={cn(
+        "relative flex items-center gap-2 cursor-pointer select-none rounded px-3 py-2 text-sm outline-none",
+        "hover:bg-paper-alt focus:bg-paper-alt",
+        "data-[disabled]:opacity-50 data-[disabled]:pointer-events-none",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+
+export const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof RadixDropdownMenu.Label>,
+  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Label>
+>(function DropdownMenuLabel({ className, ...props }, ref) {
+  return (
+    <RadixDropdownMenu.Label
+      ref={ref}
+      className={cn("px-3 py-2 text-xs text-ink-muted", className)}
+      {...props}
+    />
+  );
+});
+
+export const DropdownMenuSeparator = React.forwardRef<
+  React.ElementRef<typeof RadixDropdownMenu.Separator>,
+  React.ComponentPropsWithoutRef<typeof RadixDropdownMenu.Separator>
+>(function DropdownMenuSeparator({ className, ...props }, ref) {
+  return (
+    <RadixDropdownMenu.Separator
+      ref={ref}
+      className={cn("my-1 h-px bg-border", className)}
+      {...props}
+    />
+  );
+});
 
 /**
  * Ícone "?" pequeno com tooltip explicativo. Usado ao lado dos labels do form.

@@ -24,13 +24,19 @@ import {
   TooltipProvider,
 } from "@/components/ui/primitives";
 import {
+  AnualBlock,
+  AtoBlock,
   CustosCartoriaisSection,
   EntradaSection,
+  EntradaTotalDerivada,
   EvolucaoSection,
   ImovelSection,
   NomeCenarioSection,
   OrcamentoSection,
+  ParcelaSugeridaBlock,
 } from "@/components/form/sections";
+import { CenarioSummary } from "@/components/form/cenario-summary";
+import { LeadCtaCard } from "@/components/leads/lead-cta-card";
 import {
   Alertas,
   FluxoChart,
@@ -42,8 +48,12 @@ import { ScenarioBar } from "@/components/scenarios/scenario-bar";
 import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
 import { ShareControls } from "@/components/share/share-controls";
 import { DevolverButton } from "@/components/share/devolver-button";
+import { HeaderIdentitySlot } from "@/components/auth/header-identity-slot";
+import { BrandedShell } from "@/components/branding/branded-shell";
+import { useBrandingStore } from "@/lib/branding/use-branding-store";
 import { ScenarioPersist } from "@/lib/storage/persist";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
+import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -53,6 +63,20 @@ export default function Home() {
   const update = useScenariosStore((s) => s.update);
   const add = useScenariosStore((s) => s.add);
   const replaceAll = useScenariosStore((s) => s.replaceAll);
+  const setPendingLeadId = useShareMetaStore((s) => s.setPendingLeadId);
+
+  // Captura ?lead=<id> da URL e armazena no store. Usado por
+  // share-controls.doShare pra setar lead_id no novo share.
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const leadId = url.searchParams.get("lead");
+    if (leadId) {
+      setPendingLeadId(leadId);
+      url.searchParams.delete("lead");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }, [setPendingLeadId]);
 
   const active = scenarios.find((s) => s.id === activeId)!;
 
@@ -88,7 +112,8 @@ export default function Home() {
     <FormProvider {...form}>
       <ScenarioPersist />
       <DevolverButton variant="sticky" />
-      <div className="flex flex-col min-h-full pb-20 md:pb-0">
+      <BrandingShellOuter className="flex flex-col min-h-full pb-20 md:pb-0">
+        <PendingLeadBanner />
         <Header
           onResetAtivo={() => {
             const cfg = defaultConfig();
@@ -144,14 +169,136 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </main>
-      </div>
+        <PoweredByFooter />
+      </BrandingShellOuter>
     </FormProvider>
     </TooltipProvider>
   );
 }
 
+/**
+ * Wrapper que aplica branding (cor primária via CSS var) quando o cliente
+ * recebeu link de um corretor com marca configurada.
+ */
+function BrandingShellOuter({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const branding = useBrandingStore((s) => s.branding);
+  return (
+    <BrandedShell branding={branding} className={className}>
+      {children}
+    </BrandedShell>
+  );
+}
+
+/** Wordmark com logo (se houver) e nome do corretor. */
+function BrandedWordmark({
+  nome,
+  logoUrl,
+}: {
+  nome: string;
+  logoUrl: string | null;
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      {logoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={`Logo ${nome}`}
+          className="h-6 w-6 rounded-sm object-contain bg-white/5 p-0.5"
+        />
+      )}
+      <span className="text-accent">{nome}</span>
+    </div>
+  );
+}
+
+/**
+ * Banner mostrado quando o corretor tá criando cenário pra um lead
+ * específico (veio de /leads). Indica visualmente o contexto.
+ */
+function PendingLeadBanner() {
+  const pendingLeadId = useShareMetaStore((s) => s.pendingLeadId);
+  const [leadInfo, setLeadInfo] = React.useState<{
+    nome: string | null;
+    whatsapp: string | null;
+    email: string | null;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (!pendingLeadId) {
+      setLeadInfo(null);
+      return;
+    }
+    let cancelled = false;
+    // Lazy import pra não acoplar ao bundle do simulador
+    import("@/lib/leads/api").then(({ listAllLeads }) => {
+      listAllLeads()
+        .then((leads) => {
+          if (cancelled) return;
+          const found = leads.find((l) => l.id === pendingLeadId);
+          if (found) {
+            setLeadInfo({
+              nome: found.nome,
+              whatsapp: found.whatsapp,
+              email: found.email,
+            });
+          }
+        })
+        .catch(() => {
+          /* ignore — banner só não aparece */
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingLeadId]);
+
+  if (!pendingLeadId || !leadInfo) return null;
+
+  const contato = leadInfo.whatsapp
+    ? `+${leadInfo.whatsapp}`
+    : (leadInfo.email ?? "sem contato");
+
+  return (
+    <div className="bg-accent text-ink px-4 md:px-8 py-2.5 text-[13px] flex items-center justify-center gap-2 flex-wrap">
+      <span aria-hidden>✨</span>
+      <span>
+        Criando cenário pro lead{" "}
+        <strong>{leadInfo.nome ?? "sem nome"}</strong>
+        <span className="font-mono text-[12px] mx-2 opacity-80">
+          ({contato})
+        </span>
+        — ao clicar Compartilhar, o link será vinculado a esse lead.
+      </span>
+    </div>
+  );
+}
+
+/** Footer "Powered by Habitando" — só aparece em modo brandeado. */
+function PoweredByFooter() {
+  const branding = useBrandingStore((s) => s.branding);
+  if (!branding) return null;
+  return (
+    <div className="border-t border-border bg-paper-alt/40 py-3 text-center">
+      <a
+        href="/"
+        className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted hover:text-ink-soft transition-colors"
+      >
+        Powered by Habitando
+      </a>
+    </div>
+  );
+}
+
 function ConfigPanel({ scenario }: { scenario: Scenario }) {
   const received = useCorretorStore((s) => s.received);
+  const isClienteMode = received !== null;
   const [highlightOrcamento, setHighlightOrcamento] = React.useState(false);
 
   // Quando o cliente abre via link compartilhado, pulsa a seção Orçamento
@@ -166,6 +313,44 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
     };
   }, [received]);
 
+  if (isClienteMode) {
+    return (
+      <div className="space-y-8">
+        <section className="space-y-6">
+          {/* Imóvel/Entrada base/Custos/Evolução em card resumo read-only */}
+          <CenarioSummary />
+
+          {/* Cliente pode mexer só em Ato + Anuais */}
+          <SectionHead>Ato e contribuições anuais</SectionHead>
+          <div className="space-y-3">
+            <AtoBlock />
+            <AnualBlock />
+            <ParcelaSugeridaBlock />
+            <EntradaTotalDerivada />
+          </div>
+
+          <div id="secao-orcamento" className="scroll-mt-24 space-y-4">
+            <ClienteBanner nome={received.nome} />
+            <div
+              className={cn(
+                "space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
+                highlightOrcamento &&
+                  "ring-2 ring-accent ring-offset-4 ring-offset-paper",
+              )}
+            >
+              <SectionHead>Orçamento</SectionHead>
+              <OrcamentoSection />
+            </div>
+          </div>
+        </section>
+
+        <ResultsPanel color={scenario.color} />
+
+        <LeadCtaCard />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <section className="space-y-6">
@@ -177,17 +362,8 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         <CustosCartoriaisSection />
 
         <div id="secao-orcamento" className="scroll-mt-24 space-y-4">
-          {received && <ClienteBanner nome={received.nome} />}
-          <div
-            className={cn(
-              "space-y-6 rounded-lg p-2 -m-2 transition-shadow duration-700",
-              highlightOrcamento &&
-                "ring-2 ring-accent ring-offset-4 ring-offset-paper",
-            )}
-          >
-            <SectionHead>Orçamento</SectionHead>
-            <OrcamentoSection />
-          </div>
+          <SectionHead>Orçamento</SectionHead>
+          <OrcamentoSection />
         </div>
 
         <SectionHead>Evolução de obra</SectionHead>
@@ -233,6 +409,8 @@ function Header({
 }) {
   const received = useCorretorStore((s) => s.received);
   const isClienteMode = received !== null;
+  const branding = useBrandingStore((s) => s.branding);
+  const isBranded = isClienteMode && branding !== null;
 
   return (
     <header className="bg-ink text-white relative overflow-hidden">
@@ -241,20 +419,29 @@ function Header({
         className="absolute -top-16 -right-16 w-72 h-72 rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(201,151,58,.25) 0%, transparent 70%)",
+            "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 25%, transparent) 0%, transparent 70%)",
         }}
       />
       <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-10">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2 flex items-center gap-3">
-              <a href="/" className="hover:text-accent/80 transition-colors">
-                Habitando
-              </a>
-              <span className="text-white/20">·</span>
-              <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
-                FAQ
-              </a>
+              {isBranded && branding ? (
+                <BrandedWordmark
+                  nome={branding.nome}
+                  logoUrl={branding.logo_url}
+                />
+              ) : (
+                <>
+                  <a href="/" className="hover:text-accent/80 transition-colors">
+                    Habitando
+                  </a>
+                  <span className="text-white/20">·</span>
+                  <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
+                    FAQ
+                  </a>
+                </>
+              )}
             </div>
             {isClienteMode ? (
               <>
@@ -290,34 +477,41 @@ function Header({
           <div className="flex flex-col gap-3 items-end">
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <DevolverButton />
-              <ShareControls />
+              {!isClienteMode && (
+                <>
+                  <ShareControls />
+                  <HeaderIdentitySlot />
+                </>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/70 hover:text-white hover:bg-white/10"
-                onClick={onResetAtivo}
-              >
-                Resetar cenário
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/70 hover:text-white hover:bg-white/10"
-                onClick={() => {
-                  if (
-                    confirm(
-                      "Limpar TUDO: descarta todos os cenários e dados salvos. Continuar?",
-                    )
-                  ) {
-                    onLimparTudo();
-                  }
-                }}
-              >
-                Limpar tudo
-              </Button>
-            </div>
+            {!isClienteMode && (
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={onResetAtivo}
+                >
+                  Resetar cenário
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/70 hover:text-white hover:bg-white/10"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "Limpar TUDO: descarta todos os cenários e dados salvos. Continuar?",
+                      )
+                    ) {
+                      onLimparTudo();
+                    }
+                  }}
+                >
+                  Limpar tudo
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

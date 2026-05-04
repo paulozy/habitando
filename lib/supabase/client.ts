@@ -22,10 +22,10 @@ export function getSupabase(): SupabaseClient {
 
   cached = createClient(url, key, {
     auth: {
-      // Sem login — desabilita persistência de sessão pra não poluir localStorage.
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "implicit",
     },
   });
 

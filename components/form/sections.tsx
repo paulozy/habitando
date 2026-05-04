@@ -405,7 +405,7 @@ export function EntradaSection() {
   );
 }
 
-function AnualBlock() {
+export function AnualBlock() {
   const { control } = useFormContext<SimulacaoConfig>();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -450,7 +450,7 @@ function AnualBlock() {
   );
 }
 
-function AtoBlock() {
+export function AtoBlock() {
   const { control } = useFormContext<SimulacaoConfig>();
   const ato = useWatch({ control, name: "entrada.ato" });
   const numMeses = useWatch({ control, name: "imovel.periodos_construcao" }) ?? 35;
@@ -564,7 +564,7 @@ function AtoBlock() {
  * descontando ato e anuais. Renderizado APÓS o AnualBlock para não interromper
  * o fluxo (cálculo depende das anuais já configuradas).
  */
-function ParcelaSugeridaBlock() {
+export function ParcelaSugeridaBlock() {
   const { control, setValue } = useFormContext<SimulacaoConfig>();
   const ato = useWatch({ control, name: "entrada.ato" });
   const numMeses = useWatch({ control, name: "imovel.periodos_construcao" }) ?? 35;
@@ -658,7 +658,7 @@ function ParcelaSugeridaBlock() {
   );
 }
 
-function EntradaTotalDerivada() {
+export function EntradaTotalDerivada() {
   const { control } = useFormContext<SimulacaoConfig>();
   const ato = useWatch({ control, name: "entrada.ato" });
   const parcelaBase = useWatch({ control, name: "entrada.parcela_mensal_base" }) ?? 0;

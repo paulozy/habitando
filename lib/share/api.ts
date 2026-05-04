@@ -41,6 +41,10 @@ interface ShareRow {
 export async function createShare(args: {
   scenarios: Scenario[];
   corretor?: CorretorIdentity;
+  /** Se passado, vincula o share ao usuário autenticado. */
+  ownerId?: string;
+  /** Se passado, vincula o share a um lead (cenário criado pra esse lead). */
+  leadId?: string;
 }): Promise<{ id: string }> {
   const sb = getSupabase();
   const payload: SharePayload = {
@@ -52,9 +56,20 @@ export async function createShare(args: {
   let lastError: unknown = null;
   for (let attempt = 0; attempt < MAX_COLLISION_RETRY; attempt++) {
     const id = generateId();
+    const insertRow: {
+      id: string;
+      payload: SharePayload;
+      owner_id?: string;
+      lead_id?: string;
+    } = {
+      id,
+      payload,
+      ...(args.ownerId ? { owner_id: args.ownerId } : {}),
+      ...(args.leadId ? { lead_id: args.leadId } : {}),
+    };
     const { error } = await sb
       .from(TABLE)
-      .insert({ id, payload })
+      .insert(insertRow)
       .select("id")
       .single();
 
@@ -86,10 +101,21 @@ export async function createShare(args: {
  */
 export async function fetchShare(id: string): Promise<SharePayload | null> {
   if (!id || typeof id !== "string") return null;
+  const fetched = await fetchShareWithMeta(id);
+  return fetched?.payload ?? null;
+}
+
+/**
+ * Versão que também retorna `owner_id` (usado pra hidratar branding).
+ */
+export async function fetchShareWithMeta(
+  id: string,
+): Promise<{ payload: SharePayload; ownerId: string | null } | null> {
+  if (!id || typeof id !== "string") return null;
   const sb = getSupabase();
   const { data, error } = await sb
     .from(TABLE)
-    .select("payload, updated_at")
+    .select("payload, updated_at, owner_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -102,9 +128,12 @@ export async function fetchShare(id: string): Promise<SharePayload | null> {
   if (!result.ok || !result.scenarios) return null;
 
   return {
-    v: LATEST_SCHEMA_VERSION,
-    scenarios: result.scenarios,
-    ...(result.corretor ? { corretor: result.corretor } : {}),
+    payload: {
+      v: LATEST_SCHEMA_VERSION,
+      scenarios: result.scenarios,
+      ...(result.corretor ? { corretor: result.corretor } : {}),
+    },
+    ownerId: (data.owner_id as string | null) ?? null,
   };
 }
 
@@ -141,6 +170,29 @@ export async function updateSharePayload(
   if (error) {
     throw new ShareError("Não foi possível salvar as edições.", error);
   }
+}
+
+/**
+ * Busca o share mais recente vinculado a um lead (criado pelo corretor
+ * via fluxo "Criar cenário pra esse lead"). Usado pra pré-preencher o
+ * link na mensagem de resposta rápida.
+ */
+export async function findLatestShareForLead(
+  leadId: string,
+): Promise<{ id: string; updated_at: string } | null> {
+  if (!leadId) return null;
+  const sb = getSupabase();
+  const { data, error } = await sb
+    .from(TABLE)
+    .select("id, updated_at")
+    .eq("lead_id", leadId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    throw new ShareError("Erro ao buscar cenário do lead.", error);
+  }
+  return data as { id: string; updated_at: string } | null;
 }
 
 /** Retorna o `updated_at` do share — útil pra polling on focus do corretor. */
