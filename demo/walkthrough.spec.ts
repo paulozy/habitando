@@ -1,46 +1,46 @@
-import { test, type BrowserContext, type Page } from "@playwright/test";
+import {
+  test,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from "@playwright/test";
 import * as fs from "node:fs/promises";
 
 /**
- * Localiza um input dentro de um <Field label="..."> da UI.
- * Field renderiza <div><label>...</label>{children}</div>, então
- * partimos do label e subimos uma div pra encontrar o input descendente.
- */
-function fieldInput(page: Page, label: string) {
-  return page
-    .locator("label", { hasText: label })
-    .locator("xpath=..")
-    .locator("input")
-    .first();
-}
-
-/**
- * Walkthrough completo do Habitando — produz screencast de ~80s.
+ * Walkthrough completo v2 — cobre auth + white-label + leads.
  *
- * Estrutura em 3 partes (cada uma vira um vídeo separado, mergeado depois
- * por demo/build-mp4.mjs):
+ * Estrutura:
+ *  Setup (sem vídeo): login com user de teste, salva storageState
+ *  Parte 1 (vídeo):  corretor /perfil → simulador → compartilhar (vanity URL)
+ *  Parte 2 (vídeo):  cliente abre vanity URL → orçamento → CTA leads
+ *  Parte 3 (vídeo):  corretor /leads → criar cenário pra lead → resposta rápida
  *
- *  1. Corretor: LP → simulador → identidade → cenário → resultados →
- *     compartilhar
- *  2. Cliente: abre o link → vê banner → edita renda/gastos → devolve
- *  3. Corretor revisita: reabre o link, vê alterações
+ * Usa env vars DEMO_USER_EMAIL / DEMO_USER_PASSWORD (em web/.env, gitignored).
  */
 
 const SHARE_URL_FILE = "demo/.share-url.txt";
-const CORRETOR_NOME = "João Silva";
-const CORRETOR_WHATS = "11999998888";
+const AUTH_STATE_FILE = "demo/.auth-state.json";
 
-/** Pause humanizada — momentos de "olhar pro que apareceu". */
+const DEMO_EMAIL = process.env.DEMO_USER_EMAIL;
+const DEMO_PASSWORD = process.env.DEMO_USER_PASSWORD;
+
+if (!DEMO_EMAIL || !DEMO_PASSWORD) {
+  throw new Error(
+    "DEMO_USER_EMAIL e DEMO_USER_PASSWORD precisam estar em web/.env",
+  );
+}
+
 const beat = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Injeta no browser um cursor visível (highlight dourado seguindo o mouse). */
+/* ============================================================
+ *  Cursor highlight injection (igual versão anterior)
+ * ============================================================ */
 function injectCursorHighlight(context: BrowserContext) {
   return context.addInitScript(() => {
-    if ((window as unknown as { __cursorInjected?: boolean }).__cursorInjected) {
+    if ((window as unknown as { __cursorInjected?: boolean }).__cursorInjected)
       return;
-    }
-    (window as unknown as { __cursorInjected: boolean }).__cursorInjected = true;
-
+    (window as unknown as { __cursorInjected: boolean }).__cursorInjected =
+      true;
     const dot = document.createElement("div");
     Object.assign(dot.style, {
       position: "fixed",
@@ -58,7 +58,6 @@ function injectCursorHighlight(context: BrowserContext) {
       boxShadow: "0 0 12px rgba(201,151,58,0.6)",
     } as Partial<CSSStyleDeclaration>);
     document.documentElement.appendChild(dot);
-
     document.addEventListener(
       "mousemove",
       (e: MouseEvent) => {
@@ -67,7 +66,6 @@ function injectCursorHighlight(context: BrowserContext) {
       },
       { capture: true },
     );
-
     const style = document.createElement("style");
     style.textContent = `
       @keyframes cursorClickRing {
@@ -76,7 +74,6 @@ function injectCursorHighlight(context: BrowserContext) {
       }
     `;
     document.head.appendChild(style);
-
     document.addEventListener(
       "click",
       (e: MouseEvent) => {
@@ -101,279 +98,348 @@ function injectCursorHighlight(context: BrowserContext) {
   });
 }
 
-test.describe.serial("Habitando · walkthrough completo", () => {
-  test("1. Corretor monta cenário e compartilha", async ({ browser }) => {
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-      recordVideo: {
-        dir: "./demo/output/raw",
-        size: { width: 1920, height: 1080 },
-      },
-    });
-    await injectCursorHighlight(context);
-    const page = await context.newPage();
+/**
+ * Field input helper — encontra `<input>` dentro de um <Field label="...">.
+ */
+function fieldInput(page: Page, label: string) {
+  return page
+    .locator("label", { hasText: label })
+    .locator("xpath=..")
+    .locator("input")
+    .first();
+}
 
-    // ── 1. LP ────────────────────────────────────────────────────────────
-    await page.goto("/");
-    await beat(2000);
-    await page.evaluate(() => window.scrollTo({ top: 600, behavior: "smooth" }));
-    await beat(2200);
-    await page.evaluate(() => window.scrollTo({ top: 1500, behavior: "smooth" }));
-    await beat(2200);
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-    await beat(1200);
-    await page.getByRole("link", { name: /ver demo/i }).first().click();
-    await page.waitForURL(/\/simulador/);
-    await beat(1800);
+/**
+ * Override window.open pra navegar na MESMA aba (mais limpo pra demo —
+ * em uso real, o corretor abre nova aba, mas isso quebra o fluxo do vídeo).
+ */
+async function overrideWindowOpen(page: Page) {
+  await page.evaluate(() => {
+    window.open = ((url: string | URL | undefined) => {
+      if (url) {
+        window.location.href = String(url);
+      }
+      return null;
+    }) as typeof window.open;
+  });
+}
 
-    // ── 2. Configura identidade ──────────────────────────────────────────
-    await page.getByRole("button", { name: /minha identidade/i }).click();
-    await beat(1000);
-    await page.getByLabel(/seu nome/i).fill(CORRETOR_NOME);
+/* ============================================================
+ *  Login programático — não gravado
+ * ============================================================ */
+async function loginAndSaveState(browser: Browser): Promise<void> {
+  const ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+  });
+  const page = await ctx.newPage();
+  await page.goto("/entrar/");
+  await fieldInput(page, "E-mail").fill(DEMO_EMAIL!);
+  await fieldInput(page, "Senha").fill(DEMO_PASSWORD!);
+  await page.getByRole("button", { name: /^entrar$/i }).click();
+  await page.waitForURL(/meus-links/, { timeout: 15_000 });
+  // Aguarda sessão estabilizar
+  await beat(800);
+  await ctx.storageState({ path: AUTH_STATE_FILE });
+  await ctx.close();
+}
+
+/* ============================================================
+ *  Test único com múltiplos contextos
+ * ============================================================ */
+test("walkthrough completo v2", async ({ browser }) => {
+  test.setTimeout(5 * 60 * 1000);
+
+  // ── Setup: login (sem gravação) ──────────────────────────────────
+  await loginAndSaveState(browser);
+
+  // ── Parte 1: corretor — perfil → simulador → compartilhar ──────
+  const corretorCtx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+    recordVideo: {
+      dir: "./demo/output/raw",
+      size: { width: 1920, height: 1080 },
+    },
+    storageState: AUTH_STATE_FILE,
+  });
+  await injectCursorHighlight(corretorCtx);
+  const corretor = await corretorCtx.newPage();
+
+  // /meus-links — quick visit pra mostrar nav
+  await corretor.goto("/meus-links/");
+  await beat(2000);
+
+  // Hover/click "Perfil" no nav
+  await corretor.getByRole("link", { name: /^perfil$/i }).click();
+  await corretor.waitForURL(/perfil/);
+  await beat(2500);
+
+  // Scroll suave pelas seções de marca
+  await corretor.evaluate(() =>
+    window.scrollTo({ top: 350, behavior: "smooth" }),
+  );
+  await beat(2500);
+  await corretor.evaluate(() =>
+    window.scrollTo({ top: 800, behavior: "smooth" }),
+  );
+  await beat(2500);
+  await corretor.evaluate(() =>
+    window.scrollTo({ top: 0, behavior: "smooth" }),
+  );
+  await beat(800);
+
+  // Click "Simulador" no nav
+  await corretor.getByRole("link", { name: /simulador/i }).first().click();
+  await corretor.waitForURL(/simulador/);
+  await beat(1500);
+
+  // Reset cenário pra começar fresh (caso tenha state local)
+  const limparBtn = corretor.getByRole("button", { name: /limpar tudo/i });
+  if (await limparBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    corretor.once("dialog", (d) => d.accept());
+    await limparBtn.click();
     await beat(500);
-    await page.getByLabel(/whatsapp/i).fill(CORRETOR_WHATS);
-    await beat(700);
-    await page.getByRole("button", { name: /salvar identidade/i }).click();
-    await beat(1000);
+  }
 
-    // ── 3. Preenche cenário ──────────────────────────────────────────────
-    await page
-      .getByPlaceholder(/Apartamento 60m²/i)
-      .fill("Apartamento exemplo · 60m²");
-    await beat(500);
+  // Preenche cenário (fast-forward)
+  await corretor
+    .getByPlaceholder(/Apartamento 60m²/i)
+    .fill("Apartamento exemplo · 60m²");
+  await beat(400);
+  await fieldInput(corretor, "Valor total").fill("460151");
+  await beat(250);
+  await fieldInput(corretor, "Financiado pelo banco").fill("338000");
+  await beat(250);
+  await fieldInput(corretor, "FGTS disponível").fill("12000");
+  await beat(250);
+  await fieldInput(corretor, "Períodos").fill("35");
+  await beat(400);
+  await fieldInput(corretor, "Parcela mensal").fill("1975,74");
+  await beat(250);
+  await fieldInput(corretor, "Parcela pós-entrega").fill("2996");
+  await beat(250);
+  await fieldInput(corretor, "Valor total do ato").fill("20000");
+  await beat(700);
 
-    // Imóvel
-    await fieldInput(page, "Valor total").fill("460151");
-    await beat(300);
-    await fieldInput(page, "Financiado pelo banco").fill("338000");
-    await beat(300);
-    await fieldInput(page, "FGTS disponível").fill("12000");
-    await beat(300);
-    await fieldInput(page, "Períodos").fill("35");
-    await beat(500);
+  // Scroll pra ver resultados (StatCards + tabela)
+  await corretor.evaluate(() =>
+    window.scrollTo({ top: 1600, behavior: "smooth" }),
+  );
+  await beat(2200);
+  await corretor.evaluate(() =>
+    window.scrollBy({ top: 600, behavior: "smooth" }),
+  );
+  await beat(2200);
 
-    // Entrada — parcela mensal e pós-entrega
-    await fieldInput(page, "Parcela mensal").fill("1975,74");
-    await beat(300);
-    await fieldInput(page, "Parcela pós-entrega").fill("2996");
-    await beat(300);
+  // Volta pro topo
+  await corretor.evaluate(() =>
+    window.scrollTo({ top: 0, behavior: "smooth" }),
+  );
+  await beat(1000);
 
-    // Ato (1× à vista, valor 20k)
-    await fieldInput(page, "Valor total do ato").fill("20000");
-    await beat(800);
+  // Captura URL do compartilhar
+  await corretor.evaluate(() => {
+    (window as unknown as { __captured?: string }).__captured = "";
+    const orig = navigator.clipboard.writeText.bind(navigator.clipboard);
+    navigator.clipboard.writeText = async (text: string) => {
+      (window as unknown as { __captured: string }).__captured = text;
+      return orig(text);
+    };
+  });
 
-    // ── 4. Resultados — indicadores, gráfico, tabela detalhada ──────────
-    // Scroll pra StatCards (indicadores)
-    await page.evaluate(() =>
-      window.scrollTo({ top: 1600, behavior: "smooth" }),
-    );
-    await beat(2200);
+  await corretor
+    .getByRole("button", { name: /^compartilhar$/i })
+    .click();
+  await beat(2800);
 
-    // Gráfico stacked bar
-    await page.evaluate(() => window.scrollBy({ top: 500, behavior: "smooth" }));
-    await beat(2500);
+  const sharedUrl = await corretor.evaluate(
+    () => (window as unknown as { __captured?: string }).__captured ?? "",
+  );
+  if (!sharedUrl) {
+    throw new Error("Não capturou URL do compartilhar.");
+  }
 
-    // Tabela detalhada (mês a mês com INCC/parcela/total/saldo)
-    await page.evaluate(() =>
-      window.scrollTo({ top: document.body.scrollHeight - 800, behavior: "smooth" }),
-    );
-    await beat(3500);
+  await fs.mkdir("./demo", { recursive: true });
+  await fs.writeFile(SHARE_URL_FILE, sharedUrl, "utf-8");
 
-    // ── 5. Comparativo: cria 2º cenário com ato 3× ─────────────────────
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-    await beat(1200);
+  await beat(800);
+  await corretor.close();
+  await corretorCtx.close();
 
-    // Duplica o 1º cenário (preserva todos os valores) — depois vamos
-    // mudar só o ato pra 3 parcelas
-    await page.locator('button[title="Duplicar"]').first().click();
-    await beat(1500);
+  // ── Parte 2: cliente abre vanity URL + preenche + lead ──────────
+  const url = await fs.readFile(SHARE_URL_FILE, "utf-8");
+  const localUrl = url.replace(/^https?:\/\/[^/]+/, "");
 
-    // No 2º cenário, muda só o ato pra 3 parcelas
-    await fieldInput(page, "Parcelado em").fill("3");
-    await beat(800);
+  const clienteCtx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+    recordVideo: {
+      dir: "./demo/output/raw",
+      size: { width: 1920, height: 1080 },
+    },
+  });
+  await injectCursorHighlight(clienteCtx);
+  const cliente = await clienteCtx.newPage();
 
-    // Aba "Comparar"
-    await page.getByRole("tab", { name: /comparar/i }).click();
-    await beat(2500);
-    await page.evaluate(() => window.scrollBy({ top: 400, behavior: "smooth" }));
-    await beat(2500);
-    await page.evaluate(() => window.scrollBy({ top: 400, behavior: "smooth" }));
-    await beat(2500);
-
-    // ── 6. Exportar PDF ────────────────────────────────────────────────
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-    await beat(800);
-    await page.getByRole("tab", { name: /configura/i }).click();
-    await beat(1000);
-
-    // Click "Exportar PDF" → abre popup. Pegamos a URL e navegamos no
-    // mesmo tab pra capturar no vídeo.
-    const pdfPopupPromise = page.waitForEvent("popup");
-    await page.getByRole("button", { name: /exportar pdf/i }).click();
-    const pdfPopup = await pdfPopupPromise;
-    const pdfUrl = pdfPopup.url();
-    await pdfPopup.close();
-
-    await page.goto(pdfUrl);
-    await beat(2500);
-    // Scroll pelo PDF: capa → cenário 1 → cenário 2 → comparativo
-    await page.evaluate(() => window.scrollTo({ top: 800, behavior: "smooth" }));
-    await beat(2500);
-    await page.evaluate(() => window.scrollTo({ top: 1700, behavior: "smooth" }));
-    await beat(2500);
-    await page.evaluate(() => window.scrollTo({ top: 2700, behavior: "smooth" }));
-    await beat(2500);
-    await page.evaluate(() => window.scrollTo({ top: 3600, behavior: "smooth" }));
-    await beat(2500);
-
-    // ── 7. Volta pro simulador e compartilha ───────────────────────────
-    await page.goto("/simulador/");
-    await beat(2000);
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
-    await beat(800);
-
-    // Override clipboard pra capturar a URL
-    await page.evaluate(() => {
-      (window as unknown as { __captured?: string }).__captured = "";
-      const orig = navigator.clipboard.writeText.bind(navigator.clipboard);
-      navigator.clipboard.writeText = async (text: string) => {
-        (window as unknown as { __captured: string }).__captured = text;
-        return orig(text);
-      };
-    });
-
-    await page.getByRole("button", { name: /^compartilhar$/i }).click();
-    // Aguarda a Promise do createShare resolver e o feedback "copiado"
-    await beat(3000);
-
-    const sharedUrl = await page.evaluate(
-      () => (window as unknown as { __captured?: string }).__captured ?? "",
-    );
-    if (!sharedUrl) {
-      throw new Error(
-        "Não capturou a URL — verifique se Supabase está configurado em .env.local",
-      );
+  cliente.on("console", (msg) => {
+    if (msg.type() === "error" || msg.type() === "warning") {
+      console.log(`[cliente console.${msg.type()}]`, msg.text());
     }
-
-    await fs.mkdir("./demo", { recursive: true });
-    await fs.writeFile(SHARE_URL_FILE, sharedUrl, "utf-8");
-
-    await beat(1500);
-    await page.close();
-    await context.close();
+  });
+  cliente.on("response", (resp) => {
+    if (resp.url().includes("/leads") && resp.status() >= 400) {
+      console.log(`[cliente leads HTTP ${resp.status()}]`, resp.url());
+    }
   });
 
-  test("2. Cliente abre o link, edita Orçamento e devolve", async ({
-    browser,
-  }) => {
-    const url = await fs.readFile(SHARE_URL_FILE, "utf-8");
-    const localUrl = url.replace(/^https?:\/\/[^/]+/, "");
+  await cliente.goto(localUrl);
+  // Aguarda hidratação + scroll automático pra Orçamento + ring highlight
+  await cliente.waitForSelector("#secao-orcamento", { timeout: 10_000 });
+  await beat(3500);
 
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-      recordVideo: {
-        dir: "./demo/output/raw",
-        size: { width: 1920, height: 1080 },
-      },
-    });
-    await injectCursorHighlight(context);
-    const page = await context.newPage();
+  // Preenche renda + gastos
+  await fieldInput(cliente, "Renda líquida").fill("8000");
+  await beat(700);
+  await fieldInput(cliente, "Gastos fixos mensais").fill("3000");
+  await beat(1200);
 
-    // Cliente fresh — sem identidade, sem cenários antigos
-    await page.goto(localUrl);
-    await page.waitForLoadState("networkidle");
-    // Espera o banner do cliente aparecer (sinal que received foi setado)
-    await page
-      .getByText(/compartilhou esse cenário com você/i)
-      .waitFor({ timeout: 15_000 });
-    // Hidratação + scroll automático + highlight
-    await beat(2500);
+  // Scroll pra ver resultados atualizados
+  await cliente.evaluate(() =>
+    window.scrollBy({ top: 600, behavior: "smooth" }),
+  );
+  await beat(2200);
 
-    // Cliente preenche renda do Comprador 1
-    await fieldInput(page, "Renda líquida").fill("14580");
-    await beat(800);
+  // Scroll pra ver o CTA de leads (após ResultsPanel)
+  await cliente.evaluate(() =>
+    window.scrollTo({ top: document.body.scrollHeight - 600, behavior: "smooth" }),
+  );
+  await beat(2500);
 
-    // Cliente preenche gastos fixos
-    await fieldInput(page, "Gastos fixos mensais").fill("5000");
-    await beat(1000);
+  // Preenche o form do lead
+  await fieldInput(cliente, "Como podemos te chamar").fill("Maria Demo");
+  await beat(600);
+  await fieldInput(cliente, "Seu WhatsApp").fill("11988887777");
+  await beat(600);
 
-    // Scroll pra mostrar resultados atualizados
-    await page.evaluate(() => window.scrollBy({ top: 600, behavior: "smooth" }));
-    await beat(2500);
+  // LGPD checkbox
+  await cliente.locator('input[type="checkbox"]').click();
+  await beat(800);
 
-    // Volta pra cima pra mostrar o banner + botão Devolver
-    await page.evaluate(() =>
-      document.getElementById("secao-orcamento")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      }),
-    );
-    await beat(2000);
+  // Override window.open pra não abrir popup do PDF (deixa em-process só)
+  await overrideWindowOpen(cliente);
 
-    // Intercepta o popup do WhatsApp pra não tentar abrir externamente
-    const popupPromise = page.waitForEvent("popup").catch(() => null);
-    await page
-      .getByRole("button", { name: /mandar pra/i })
+  // Submit (precisa esperar 1.5s do anti-bot — já passou pelos beats)
+  await cliente
+    .getByRole("button", { name: /receber resumo em pdf/i })
+    .click();
+  await beat(2500);
+  // Verifica se foi enviado (DoneCard aparece)
+  const enviado = await cliente
+    .getByText(/contato enviado pra/i)
+    .isVisible({ timeout: 3000 })
+    .catch(() => false);
+  if (!enviado) {
+    console.log("[ALERTA] DoneCard não apareceu — submit pode ter falhado");
+    // Pega texto de erro se houver
+    const errMsg = await cliente
+      .locator(".bg-red-soft")
       .first()
-      .click();
-    const popup = await popupPromise;
-    await beat(1800);
-    if (popup) await popup.close().catch(() => {});
+      .textContent({ timeout: 1000 })
+      .catch(() => null);
+    if (errMsg) console.log("[Erro inline]", errMsg);
+  } else {
+    console.log("[OK] Lead Maria Demo enviado");
+  }
 
-    await beat(800);
-    await page.close();
-    await context.close();
+  await cliente.close();
+  await clienteCtx.close();
+
+  // ── Parte 3: corretor /leads + criar cenário + resposta rápida ──
+  const corretor2Ctx = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+    recordVideo: {
+      dir: "./demo/output/raw",
+      size: { width: 1920, height: 1080 },
+    },
+    storageState: AUTH_STATE_FILE,
+  });
+  await injectCursorHighlight(corretor2Ctx);
+  const corretor2 = await corretor2Ctx.newPage();
+
+  await corretor2.goto("/leads/");
+  await beat(2500);
+
+  // Mostra a Maria Demo no topo da lista — espera renderizar
+  await corretor2
+    .getByText(/Maria Demo/i)
+    .first()
+    .waitFor({ timeout: 10_000 });
+  await beat(2000);
+
+  // Override window.open pra "Criar cenário" navegar na mesma aba
+  await overrideWindowOpen(corretor2);
+
+  // Click "Criar cenário pra esse lead" no card da Maria Demo
+  // (primeiro botão com esse texto = lead mais recente)
+  await corretor2
+    .getByRole("button", { name: /criar cenário pra esse lead/i })
+    .first()
+    .click();
+  await corretor2.waitForURL(/simulador/);
+  await beat(2500);
+
+  // Banner amarelo "Criando cenário pro lead Maria Demo" deve aparecer
+  // Scroll suave pra mostrar o cenário pré-populado
+  await corretor2.evaluate(() =>
+    window.scrollTo({ top: 600, behavior: "smooth" }),
+  );
+  await beat(2000);
+
+  // Corretor ajusta ato pra 3 parcelas (exemplo de customização)
+  await fieldInput(corretor2, "Parcelado em").fill("3");
+  await beat(1000);
+
+  // Volta pro topo + Compartilhar
+  await corretor2.evaluate(() =>
+    window.scrollTo({ top: 0, behavior: "smooth" }),
+  );
+  await beat(1000);
+
+  await corretor2.evaluate(() => {
+    (window as unknown as { __captured?: string }).__captured = "";
+    const orig = navigator.clipboard.writeText.bind(navigator.clipboard);
+    navigator.clipboard.writeText = async (text: string) => {
+      (window as unknown as { __captured: string }).__captured = text;
+      return orig(text);
+    };
   });
 
-  test("3. Corretor reabre e vê alterações do cliente", async ({ browser }) => {
-    const url = await fs.readFile(SHARE_URL_FILE, "utf-8");
-    const localUrl = url.replace(/^https?:\/\/[^/]+/, "");
+  await corretor2
+    .getByRole("button", { name: /^compartilhar$/i })
+    .click();
+  await beat(2500);
 
-    // Pré-carrega identidade do corretor pra simular self-detection
-    const context = await browser.newContext({
-      viewport: { width: 1920, height: 1080 },
-      recordVideo: {
-        dir: "./demo/output/raw",
-        size: { width: 1920, height: 1080 },
-      },
-      storageState: {
-        cookies: [],
-        origins: [
-          {
-            origin: "http://localhost:3000",
-            localStorage: [
-              {
-                name: "habitando:corretor-own",
-                value: JSON.stringify({
-                  nome: CORRETOR_NOME,
-                  whatsapp: "55" + CORRETOR_WHATS,
-                }),
-              },
-            ],
-          },
-        ],
-      },
-    });
-    await injectCursorHighlight(context);
-    const page = await context.newPage();
+  // Volta pra /leads (simulador não tem AppHeader — navega direto)
+  await corretor2.goto("/leads/");
+  await beat(2500);
 
-    await page.goto(localUrl);
-    await beat(3500);
+  // Maria agora tem badge "respondido"
+  // Click "Resposta rápida" no card da Maria
+  await corretor2
+    .getByRole("button", { name: /resposta rápida/i })
+    .first()
+    .click();
+  await beat(3500);
 
-    // Scroll pra Orçamento mostrar valores que cliente preencheu
-    await page.evaluate(() =>
-      document.getElementById("secao-orcamento")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      }),
-    );
-    await beat(3000);
-
-    // Scroll mais pra ver o resultado atualizado
-    await page.evaluate(() => window.scrollBy({ top: 600, behavior: "smooth" }));
-    await beat(3000);
-
-    await page.close();
-    await context.close();
+  // Popover com template visível por uns segundos pra leitor ler
+  // Click "Mandar via WhatsApp" — overrride não abre wa.me, mas botão clicado
+  const mandarBtn = corretor2.getByRole("button", {
+    name: /mandar via whatsapp/i,
   });
+  if (await mandarBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await mandarBtn.click();
+    await beat(1500);
+  }
+
+  await beat(800);
+  await corretor2.close();
+  await corretor2Ctx.close();
 });

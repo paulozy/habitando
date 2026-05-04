@@ -23,14 +23,9 @@ vi.mock("@/lib/supabase/client", () => ({
     from: (_table: string) => ({
       insert: (row: unknown) => {
         insertCalls.push(row);
-        return {
-          select: () => ({
-            single: () =>
-              Promise.resolve(
-                insertResults.shift() ?? { data: { id: "new" }, error: null },
-              ),
-          }),
-        };
+        // Insert é thenable diretamente — submitLead não chama .select()
+        const result = insertResults.shift() ?? { error: null };
+        return Promise.resolve(result);
       },
       select: (_cols: string) => ({
         eq: () => ({
@@ -57,10 +52,22 @@ vi.mock("@/lib/supabase/client", () => ({
             ),
         }),
       }),
-      update: (_patch: unknown) => ({
-        eq: () =>
-          Promise.resolve(updateResults.shift() ?? { error: null }),
-      }),
+      update: (_patch: unknown) => {
+        // Pode ser .update().eq() OR .update().eq().eq() (chained equals)
+        const eqChain = {
+          eq: () =>
+            Object.assign(
+              Promise.resolve(updateResults.shift() ?? { error: null }),
+              {
+                eq: () =>
+                  Promise.resolve(
+                    updateResults.shift() ?? { error: null },
+                  ),
+              },
+            ),
+        };
+        return eqChain;
+      },
     }),
   }),
 }));
@@ -105,7 +112,7 @@ describe("submitLead", () => {
   });
 
   it("normaliza email (lowercase) e whatsapp (só dígitos)", async () => {
-    insertResults.push({ data: { id: "lead-1" }, error: null });
+    insertResults.push({ error: null });
     await submitLead({
       shareId: "abc",
       ownerId: "u-1",
@@ -118,7 +125,7 @@ describe("submitLead", () => {
   });
 
   it("envia whatsapp limpo (só dígitos) quando passado", async () => {
-    insertResults.push({ data: { id: "lead-1" }, error: null });
+    insertResults.push({ error: null });
     await submitLead({
       shareId: "abc",
       ownerId: "u-1",
@@ -130,26 +137,23 @@ describe("submitLead", () => {
     expect(inserted.email).toBeNull();
   });
 
-  it("retorna id do lead em happy path", async () => {
-    insertResults.push({ data: { id: "lead-xyz" }, error: null });
+  it("retorna id placeholder em happy path", async () => {
+    insertResults.push({ error: null });
     const result = await submitLead({
       shareId: "abc",
       ownerId: "u-1",
       email: "a@b.com",
       consentLgpd: true,
     });
-    expect(result.id).toBe("lead-xyz");
+    // Insert sem .select() — anon não tem SELECT em leads (RLS)
+    expect(result.id).toBe("ok");
   });
 
-  it("trata duplicate (23505) atualizando lead existente", async () => {
-    // Insert falha com 23505
+  it("trata duplicate (23505) silenciosamente", async () => {
     insertResults.push({
-      data: null,
       error: { code: "23505", message: "duplicate" },
     });
-    // Lookup do existente
-    selectMaybeResults.push({ data: { id: "lead-existing" }, error: null });
-    // Update silencioso
+    // Update silencioso (anon pode update via RLS)
     updateResults.push({ error: null });
     const result = await submitLead({
       shareId: "abc",
@@ -157,12 +161,11 @@ describe("submitLead", () => {
       email: "a@b.com",
       consentLgpd: true,
     });
-    expect(result.id).toBe("lead-existing");
+    expect(result.id).toBe("existing");
   });
 
   it("propaga erro genérico do Supabase", async () => {
     insertResults.push({
-      data: null,
       error: { code: "42501", message: "RLS denied" },
     });
     await expect(

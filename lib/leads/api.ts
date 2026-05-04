@@ -73,32 +73,22 @@ export async function submitLead(input: SubmitLeadInput): Promise<{ id: string }
     payload_snapshot: input.payloadSnapshot ?? null,
   };
 
-  // Insert direto. Se duplicate (unique index baseado em coalesce(email, whatsapp)),
-  // busca a row existente e atualiza. PostgREST não aceita expressão em onConflict,
-  // então não usamos upsert nativo aqui.
-  const { data: inserted, error: insertErr } = await sb
-    .from(TABLE)
-    .insert(row)
-    .select("id")
-    .single();
+  // Insert "fire-and-forget" — sem .select() porque anon não tem SELECT
+  // em leads (RLS). PostgREST com returning=minimal evita o SELECT
+  // implícito que dispararia 401.
+  //
+  // Se duplicate (unique index em coalesce(email, whatsapp)), tenta
+  // update; se update também falhar (RLS), aceita silenciosamente —
+  // lead já existe, UX cliente segue.
+  const { error: insertErr } = await sb.from(TABLE).insert(row);
 
-  if (!insertErr && inserted) return { id: inserted.id };
+  if (!insertErr) return { id: "ok" };
 
-  if (insertErr?.code === "23505") {
-    // Duplicate: busca por (share_id, email|whatsapp) e atualiza
-    let q = sb.from(TABLE).select("id").eq("share_id", row.share_id);
-    if (row.email) {
-      q = q.eq("email", row.email);
-    } else if (row.whatsapp) {
-      q = q.eq("whatsapp", row.whatsapp);
-    }
-    const { data: existing, error: findErr } = await q.maybeSingle();
-    if (findErr || !existing) {
-      // Bate o unique mas não consegue achar — provavelmente RLS bloqueia
-      // SELECT pro anon. Trata como sucesso silencioso (lead já existe).
-      return { id: "existing" };
-    }
-    const { error: updateErr } = await sb
+  if (insertErr.code === "23505") {
+    // Duplicate: tenta update. Anon tem UPDATE policy se share/owner
+    // bate. Não retorna id (anon não consegue ler), mas isso não importa
+    // pra UX do cliente (DoneCard não usa id).
+    const updateQ = sb
       .from(TABLE)
       .update({
         nome: row.nome,
@@ -106,12 +96,14 @@ export async function submitLead(input: SubmitLeadInput): Promise<{ id: string }
         user_agent: row.user_agent,
         payload_snapshot: row.payload_snapshot,
       })
-      .eq("id", existing.id);
-    if (updateErr) {
-      // Update falhou — lead já registrado, ok pra UX cliente
-      return { id: existing.id };
-    }
-    return { id: existing.id };
+      .eq("share_id", row.share_id);
+
+    const finalQ = row.email
+      ? updateQ.eq("email", row.email)
+      : updateQ.eq("whatsapp", row.whatsapp ?? "");
+
+    await finalQ; // ignora erros de update — duplicate já confirma que existe
+    return { id: "existing" };
   }
   throw new LeadError(
     "Não foi possível salvar seu contato.",

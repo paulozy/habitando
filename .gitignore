@@ -45,6 +45,7 @@ next-env.d.ts
 /test-results/
 /demo/output/
 /demo/.share-url.txt
+/demo/.auth-state.json
 
 # supabase CLI cache
 /supabase/.temp/
