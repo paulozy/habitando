@@ -3,13 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, LogOut, Mail, MessageCircle, Target } from "lucide-react";
+import { ExternalLink, Eye, LogOut, Mail, MessageCircle, Target } from "lucide-react";
 import { Button } from "@/components/ui/primitives";
 import { listOwnedShares, signOut } from "@/lib/auth/api";
 import { countLeadsByShare, listLeadsForShare, type LeadRow } from "@/lib/leads/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
-import { migrarPayload, type CorretorIdentity } from "@/lib/url-state";
+import {
+  encodeScenarios,
+  migrarPayload,
+  type CorretorIdentity,
+} from "@/lib/url-state";
 import type { Scenario } from "@/lib/storage/use-scenarios-store";
+import { fmt } from "@/lib/calculation-engine";
 
 interface ShareRow {
   id: string;
@@ -256,40 +261,181 @@ function LeadsDrawer({ shareId, count }: { shareId: string; count: number }) {
 
 function LeadItem({ lead }: { lead: LeadRow }) {
   const created = relativeTime(new Date(lead.created_at));
+  const summary = extractClienteSummary(lead.payload_snapshot);
+  const snapshotScenarios = extractSnapshotScenarios(lead.payload_snapshot);
+
+  const handleOpenSimulacao = () => {
+    if (!snapshotScenarios) return;
+    const encoded = encodeScenarios(snapshotScenarios);
+    window.open(
+      `${window.location.origin}/simulador/?s=${encoded}`,
+      "_blank",
+      "noopener",
+    );
+  };
+
   return (
-    <div className="flex items-start justify-between gap-3 py-2 border-b border-accent/10 last:border-b-0">
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-ink text-[13.5px]">
-          {lead.nome ?? "Sem nome"}
+    <div className="py-2.5 border-b border-accent/10 last:border-b-0 space-y-1.5">
+      {/* Linha 1: nome + contato */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-ink text-[13.5px]">
+            {lead.nome ?? "Sem nome"}
+          </div>
+          <div className="text-[11.5px] text-ink-muted">{created}</div>
         </div>
-        <div className="text-[11.5px] text-ink-muted">{created}</div>
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {lead.whatsapp && (
+            <a
+              href={`https://wa.me/${lead.whatsapp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[12.5px] text-green hover:text-green/80 font-mono"
+              title="Abrir WhatsApp"
+            >
+              <MessageCircle className="h-3 w-3" />
+              +{lead.whatsapp}
+            </a>
+          )}
+          {lead.email && (
+            <a
+              href={`mailto:${lead.email}`}
+              className="inline-flex items-center gap-1 text-[12.5px] text-blue hover:text-blue/80"
+              title="Enviar e-mail"
+            >
+              <Mail className="h-3 w-3" />
+              {lead.email}
+            </a>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-2 shrink-0">
-        {lead.whatsapp && (
-          <a
-            href={`https://wa.me/${lead.whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[12.5px] text-green hover:text-green/80 font-mono"
-            title="Abrir WhatsApp"
-          >
-            <MessageCircle className="h-3 w-3" />
-            +{lead.whatsapp}
-          </a>
+
+      {/* Linha 2: resumo do que cliente preencheu */}
+      {summary && (
+        <div className="flex items-center gap-3 flex-wrap text-[12px] text-ink-soft pl-0.5">
+          <SummaryItem label="Renda" value={fmt.formatBRL(summary.rendaTotal)} />
+          <SummaryItem label="Gastos" value={fmt.formatBRL(summary.gastosFixos)} />
+          {summary.atoValor > 0 && (
+            <SummaryItem
+              label="Ato"
+              value={`${fmt.formatBRL(summary.atoValor)}${
+                summary.atoParcelas > 1 ? ` em ${summary.atoParcelas}×` : ""
+              }`}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Linha 3: cenário + botão "Ver simulação" */}
+      <div className="flex items-center justify-between gap-3 flex-wrap pl-0.5">
+        {summary?.nomeCenario && (
+          <div className="text-[11.5px] text-ink-muted truncate max-w-[60%]">
+            <span className="font-mono uppercase tracking-wide mr-1.5">
+              cenário:
+            </span>
+            {summary.nomeCenario}
+          </div>
         )}
-        {lead.email && (
-          <a
-            href={`mailto:${lead.email}`}
-            className="inline-flex items-center gap-1 text-[12.5px] text-blue hover:text-blue/80"
-            title="Enviar e-mail"
-          >
-            <Mail className="h-3 w-3" />
-            {lead.email}
-          </a>
-        )}
+        <button
+          type="button"
+          onClick={handleOpenSimulacao}
+          disabled={!snapshotScenarios}
+          className="inline-flex items-center gap-1 text-[12px] text-accent hover:text-accent/80 disabled:text-ink-muted disabled:cursor-not-allowed"
+          title={
+            snapshotScenarios
+              ? "Abre o cenário no simulador (nova aba)"
+              : "Snapshot indisponível"
+          }
+        >
+          <Eye className="h-3 w-3" />
+          Ver simulação
+          <ExternalLink className="h-2.5 w-2.5" />
+        </button>
       </div>
     </div>
   );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-baseline gap-1">
+      <span className="font-mono uppercase tracking-wide text-[10px] text-ink-muted">
+        {label}:
+      </span>
+      <span className="font-mono tabular-nums">{value}</span>
+    </span>
+  );
+}
+
+interface ClienteSummary {
+  rendaTotal: number;
+  gastosFixos: number;
+  atoValor: number;
+  atoParcelas: number;
+  nomeCenario: string | null;
+}
+
+/**
+ * Extrai os campos que o cliente costumeiramente preenche/edita
+ * (renda, gastos, ato) do snapshot, pra mostrar inline no LeadItem.
+ *
+ * Lê o primeiro cenário do snapshot — se houver múltiplos, o resumo
+ * ainda assim representa o "principal" que o cliente viu.
+ */
+function extractClienteSummary(snapshot: unknown): ClienteSummary | null {
+  try {
+    const sn = snapshot as { scenarios?: Array<{ config?: unknown }> };
+    if (!sn?.scenarios || sn.scenarios.length === 0) return null;
+    const config = sn.scenarios[0].config as {
+      rotulo?: string;
+      renda?: {
+        compradores?: Array<{ renda_liquida?: number }>;
+        outros_rendimentos?: number;
+      };
+      gastos?: { gastos_fixos_mensais?: number };
+      entrada?: { ato?: { valor_total?: number; parcelas?: number } };
+    };
+    if (!config) return null;
+
+    const compradores = config.renda?.compradores ?? [];
+    const rendaSoma = compradores.reduce(
+      (a, c) => a + (c.renda_liquida ?? 0),
+      0,
+    );
+    const rendaTotal = rendaSoma + (config.renda?.outros_rendimentos ?? 0);
+    const gastosFixos = config.gastos?.gastos_fixos_mensais ?? 0;
+    const atoValor = config.entrada?.ato?.valor_total ?? 0;
+    const atoParcelas = config.entrada?.ato?.parcelas ?? 1;
+
+    return {
+      rendaTotal,
+      gastosFixos,
+      atoValor,
+      atoParcelas,
+      nomeCenario: config.rotulo ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extrai a array de scenarios do snapshot via `migrarPayload` (passa pelos
+ * migrators e validação lenient). Retorna null se snapshot for inválido.
+ */
+function extractSnapshotScenarios(snapshot: unknown): Scenario[] | null {
+  if (!snapshot) return null;
+  // Snapshot foi gravado como { scenarios }. Reaproveita migrarPayload
+  // que aceita {scenarios} sem campo `v` — nesse caso, validação lenient
+  // tenta cada cenário individualmente.
+  const wrapped = (snapshot as { scenarios?: unknown }).scenarios
+    ? snapshot
+    : { scenarios: [] };
+  const result = migrarPayload(wrapped);
+  if (!result.ok || !result.scenarios || result.scenarios.length === 0) {
+    return null;
+  }
+  return result.scenarios;
 }
 
 function EmptyState() {
