@@ -18,6 +18,7 @@ import {
 } from "@/lib/share/api";
 import { fetchBrandingById } from "@/lib/branding/api";
 import { useBrandingStore } from "@/lib/branding/use-branding-store";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
 const KEY = "can-i-buy:scenarios";
@@ -41,14 +42,48 @@ export function ScenarioPersist() {
 
     let cancelled = false;
 
-    const handleCorretorIdentity = (
+    /**
+     * Espera até auth resolver de "loading" pra "authenticated"/"anonymous"
+     * antes de classificar self-detection. Timeout de 2s pra não travar
+     * o cliente legítimo (sem login → status anonymous direto).
+     */
+    const waitForAuth = async (): Promise<void> => {
+      const start = Date.now();
+      while (
+        useAuthStore.getState().status === "loading" &&
+        Date.now() - start < 2000
+      ) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    };
+
+    const handleCorretorIdentity = async (
       corretor:
         | { nome: string; whatsapp: string }
         | undefined,
+      ownerId: string | null,
     ) => {
       if (!corretor) return;
+
+      // Aguarda auth pra evitar falso "cliente mode" pro corretor logado
+      // que abre o próprio link (timing race entre AuthBootstrap e persist).
+      await waitForAuth();
+      if (cancelled) return;
+
       const corretorStore = useCorretorStore.getState();
-      const isSelf = corretorStore.own?.whatsapp === corretor.whatsapp;
+      const authStore = useAuthStore.getState();
+
+      // Self-detection em duas camadas:
+      // 1. Auth: usuário logado é o dono do share (mais confiável)
+      // 2. Anon: identidade local bate com o WhatsApp do payload
+      const authedSelf =
+        authStore.session?.user.id !== undefined &&
+        ownerId !== null &&
+        authStore.session.user.id === ownerId;
+      const anonSelf =
+        corretorStore.own?.whatsapp === corretor.whatsapp;
+      const isSelf = authedSelf || anonSelf;
+
       if (isSelf) {
         if (corretorStore.received) corretorStore.clearReceived();
       } else {
@@ -94,7 +129,7 @@ export function ScenarioPersist() {
         }
         useScenariosStore.getState().replaceAll(fetched.payload.scenarios);
         useShareMetaStore.getState().setRemoteId(c);
-        handleCorretorIdentity(fetched.payload.corretor);
+        handleCorretorIdentity(fetched.payload.corretor, fetched.ownerId);
 
         // Branding: fetch via owner_id se a branding store ainda está vazia
         // (caso /c/ não tenha pré-carregado) e o share tem dono.
@@ -132,7 +167,8 @@ export function ScenarioPersist() {
       useScenariosStore.getState().replaceAll(dec.scenarios);
       // Link legacy: limpa qualquer remoteId antigo, cenário vive só local.
       useShareMetaStore.getState().setRemoteId(null);
-      handleCorretorIdentity(dec.corretor);
+      // Legacy ?s= não traz ownerId — fallback só pra anon self-detection
+      handleCorretorIdentity(dec.corretor, null);
       stripParams("s");
       return true;
     };
