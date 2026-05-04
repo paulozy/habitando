@@ -42,6 +42,7 @@ import { ScenarioBar } from "@/components/scenarios/scenario-bar";
 import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
 import { ShareControls } from "@/components/share/share-controls";
 import { DevolverButton } from "@/components/share/devolver-button";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { ScenarioPersist } from "@/lib/storage/persist";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { cn } from "@/lib/utils";
@@ -233,6 +234,7 @@ function Header({
 }) {
   const received = useCorretorStore((s) => s.received);
   const isClienteMode = received !== null;
+  const authStatus = useAuthStore((s) => s.status);
 
   return (
     <header className="bg-ink text-white relative overflow-hidden">
@@ -255,6 +257,27 @@ function Header({
               <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
                 FAQ
               </a>
+              {authStatus === "authenticated" ? (
+                <>
+                  <span className="text-white/20">·</span>
+                  <a
+                    href="/meus-links/"
+                    className="hover:text-white/90 transition-colors text-white/60"
+                  >
+                    Meus links
+                  </a>
+                </>
+              ) : authStatus === "anonymous" && !isClienteMode ? (
+                <>
+                  <span className="text-white/20">·</span>
+                  <a
+                    href="/entrar/"
+                    className="hover:text-white/90 transition-colors text-white/60"
+                  >
+                    Entrar
+                  </a>
+                </>
+              ) : null}
             </div>
             {isClienteMode ? (
               <>

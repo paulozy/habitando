@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display, DM_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -40,6 +41,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${dmSerif.variable} ${dmMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
+        <AuthBootstrap />
         <NuqsAdapter>{children}</NuqsAdapter>
       </body>
     </html>

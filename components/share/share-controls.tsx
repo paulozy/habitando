@@ -1,12 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/primitives";
+import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { createShare, ShareError } from "@/lib/share/api";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
 import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { encodeScenarios } from "@/lib/url-state";
+import {
+  CorretorIdentitySchema,
+  encodeScenarios,
+  type CorretorIdentity,
+} from "@/lib/url-state";
 import { cn } from "@/lib/utils";
 import { Check, FileText, Link2, UserCog } from "lucide-react";
 import * as React from "react";
@@ -14,8 +19,21 @@ import { CorretorIdentityForm } from "./corretor-identity-form";
 
 export function ShareControls() {
   const scenarios = useScenariosStore((s) => s.scenarios);
-  const own = useCorretorStore((s) => s.own);
+  const ownLocal = useCorretorStore((s) => s.own);
+  const profile = useAuthStore((s) => s.profile);
+  const session = useAuthStore((s) => s.session);
   const setRemoteId = useShareMetaStore((s) => s.setRemoteId);
+
+  // Quando autenticado, profile vira a fonte da identidade do corretor.
+  // Senão, cai no localStorage (own anônimo).
+  const own = React.useMemo<CorretorIdentity | null>(() => {
+    if (profile && profile.whatsapp) {
+      const candidate = { nome: profile.nome, whatsapp: profile.whatsapp };
+      const parsed = CorretorIdentitySchema.safeParse(candidate);
+      return parsed.success ? parsed.data : ownLocal;
+    }
+    return ownLocal;
+  }, [profile, ownLocal]);
 
   const [feedback, setFeedback] = React.useState<{
     tone: "ok" | "err";
@@ -40,6 +58,7 @@ export function ShareControls() {
         const { id } = await createShare({
           scenarios,
           corretor: identityForLink ?? undefined,
+          ownerId: session?.user.id,
         });
         setRemoteId(id);
         const url = `${window.location.origin}/simulador/?c=${id}`;
@@ -59,7 +78,7 @@ export function ShareControls() {
         setBusy(false);
       }
     },
-    [scenarios, setRemoteId],
+    [scenarios, setRemoteId, session?.user.id],
   );
 
   const handleShare = async () => {
@@ -104,21 +123,32 @@ export function ShareControls() {
         <FileText className="h-3.5 w-3.5" />
         Exportar PDF
       </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setIdentityOpen(true)}
-        className="bg-transparent border-white/20 text-white hover:bg-white/10"
-        title={
-          own
-            ? `Identidade configurada: ${own.nome}`
-            : "Configure seu nome e WhatsApp pra aparecer no link"
-        }
-      >
-        <UserCog className="h-3.5 w-3.5" />
-        {own ? own.nome : "Minha identidade"}
-      </Button>
+      {profile ? (
+        <a
+          href="/meus-links/"
+          className="inline-flex items-center gap-2 px-3 h-8 rounded-md text-sm font-medium border border-white/20 text-white hover:bg-white/10 transition-colors"
+          title={`Logado como ${profile.nome} — meus links`}
+        >
+          <UserCog className="h-3.5 w-3.5" />
+          {profile.nome}
+        </a>
+      ) : (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIdentityOpen(true)}
+          className="bg-transparent border-white/20 text-white hover:bg-white/10"
+          title={
+            own
+              ? `Identidade configurada: ${own.nome}`
+              : "Configure seu nome e WhatsApp pra aparecer no link"
+          }
+        >
+          <UserCog className="h-3.5 w-3.5" />
+          {own ? own.nome : "Minha identidade"}
+        </Button>
+      )}
       {feedback && (
         <span
           className={cn(

@@ -41,6 +41,8 @@ interface ShareRow {
 export async function createShare(args: {
   scenarios: Scenario[];
   corretor?: CorretorIdentity;
+  /** Se passado, vincula o share ao usuário autenticado. */
+  ownerId?: string;
 }): Promise<{ id: string }> {
   const sb = getSupabase();
   const payload: SharePayload = {
@@ -52,9 +54,14 @@ export async function createShare(args: {
   let lastError: unknown = null;
   for (let attempt = 0; attempt < MAX_COLLISION_RETRY; attempt++) {
     const id = generateId();
+    const insertRow: { id: string; payload: SharePayload; owner_id?: string } = {
+      id,
+      payload,
+      ...(args.ownerId ? { owner_id: args.ownerId } : {}),
+    };
     const { error } = await sb
       .from(TABLE)
-      .insert({ id, payload })
+      .insert(insertRow)
       .select("id")
       .single();
 
