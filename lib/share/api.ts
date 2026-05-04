@@ -93,10 +93,21 @@ export async function createShare(args: {
  */
 export async function fetchShare(id: string): Promise<SharePayload | null> {
   if (!id || typeof id !== "string") return null;
+  const fetched = await fetchShareWithMeta(id);
+  return fetched?.payload ?? null;
+}
+
+/**
+ * Versão que também retorna `owner_id` (usado pra hidratar branding).
+ */
+export async function fetchShareWithMeta(
+  id: string,
+): Promise<{ payload: SharePayload; ownerId: string | null } | null> {
+  if (!id || typeof id !== "string") return null;
   const sb = getSupabase();
   const { data, error } = await sb
     .from(TABLE)
-    .select("payload, updated_at")
+    .select("payload, updated_at, owner_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -109,9 +120,12 @@ export async function fetchShare(id: string): Promise<SharePayload | null> {
   if (!result.ok || !result.scenarios) return null;
 
   return {
-    v: LATEST_SCHEMA_VERSION,
-    scenarios: result.scenarios,
-    ...(result.corretor ? { corretor: result.corretor } : {}),
+    payload: {
+      v: LATEST_SCHEMA_VERSION,
+      scenarios: result.scenarios,
+      ...(result.corretor ? { corretor: result.corretor } : {}),
+    },
+    ownerId: (data.owner_id as string | null) ?? null,
   };
 }
 

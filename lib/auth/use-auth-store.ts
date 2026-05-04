@@ -9,6 +9,9 @@ export interface Profile {
   whatsapp: string | null;
   slug: string | null;
   plano: "free" | "corretor" | "imobiliaria";
+  logo_url: string | null;
+  cor_primaria: string | null;
+  tagline: string | null;
   created_at: string;
   updated_at: string;
 }

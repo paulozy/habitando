@@ -61,7 +61,11 @@ export function ShareControls() {
           ownerId: session?.user.id,
         });
         setRemoteId(id);
-        const url = `${window.location.origin}/simulador/?c=${id}`;
+        // Quando o corretor tem slug configurado, gera URL vanity branded:
+        // /c/<slug>/<id>. Senão, fallback pro short link tradicional.
+        const url = profile?.slug
+          ? `${window.location.origin}/c/${profile.slug}/${id}`
+          : `${window.location.origin}/simulador/?c=${id}`;
         try {
           await navigator.clipboard.writeText(url);
           flash("ok", "Link copiado ✓");
@@ -78,7 +82,7 @@ export function ShareControls() {
         setBusy(false);
       }
     },
-    [scenarios, setRemoteId, session?.user.id],
+    [scenarios, setRemoteId, session?.user.id, profile?.slug],
   );
 
   const handleShare = async () => {
@@ -93,9 +97,11 @@ export function ShareControls() {
   const handleExportPDF = () => {
     if (typeof window === "undefined") return;
     // PDF continua via ?s= (one-shot, sem Supabase) — relatório é
-    // self-contained, não muda mais depois de aberto.
+    // self-contained, não muda mais depois de aberto. Se o corretor tem
+    // slug, anexa ?u=<slug> pra branding aplicar.
     const encoded = encodeScenarios(scenarios, own ?? undefined);
-    const url = `${window.location.origin}/relatorio/?s=${encoded}`;
+    const slugParam = profile?.slug ? `&u=${profile.slug}` : "";
+    const url = `${window.location.origin}/relatorio/?s=${encoded}${slugParam}`;
     window.open(url, "_blank", "noopener");
   };
 

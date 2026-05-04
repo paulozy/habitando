@@ -11,10 +11,13 @@ import { useCorretorStore } from "./use-corretor-store";
 import { useShareMetaStore } from "./use-share-meta-store";
 import {
   fetchShare,
+  fetchShareWithMeta,
   updateSharePayload,
   getShareUpdatedAt,
   ShareError,
 } from "@/lib/share/api";
+import { fetchBrandingById } from "@/lib/branding/api";
+import { useBrandingStore } from "@/lib/branding/use-branding-store";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 
 const KEY = "can-i-buy:scenarios";
@@ -82,16 +85,31 @@ export function ScenarioPersist() {
         return false;
       }
       try {
-        const payload = await fetchShare(c);
+        const fetched = await fetchShareWithMeta(c);
         if (cancelled) return true;
-        if (!payload) {
+        if (!fetched) {
           console.warn(`Share ${c} não encontrado.`);
           stripParams("c");
           return false;
         }
-        useScenariosStore.getState().replaceAll(payload.scenarios);
+        useScenariosStore.getState().replaceAll(fetched.payload.scenarios);
         useShareMetaStore.getState().setRemoteId(c);
-        handleCorretorIdentity(payload.corretor);
+        handleCorretorIdentity(fetched.payload.corretor);
+
+        // Branding: fetch via owner_id se a branding store ainda está vazia
+        // (caso /c/ não tenha pré-carregado) e o share tem dono.
+        const brandingStore = useBrandingStore.getState();
+        if (fetched.ownerId && !brandingStore.branding) {
+          brandingStore.setLoading(true);
+          fetchBrandingById(fetched.ownerId)
+            .then((branding) => {
+              if (!cancelled) brandingStore.setBranding(branding);
+            })
+            .catch(() => {
+              if (!cancelled) brandingStore.setBranding(null);
+            });
+        }
+
         stripParams("c", "s");
         return true;
       } catch (err) {

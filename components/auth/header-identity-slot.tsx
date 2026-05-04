@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ExternalLink, LogIn, LogOut, Pencil, Trash2, UserPlus } from "lucide-react";
+import { ChevronDown, ExternalLink, LogIn, LogOut, Palette, Pencil, Trash2, UserPlus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -279,6 +279,10 @@ function AuthedSlot({
         <DropdownMenuItem onSelect={() => router.push("/meus-links/")}>
           <ExternalLink className="h-3.5 w-3.5" />
           Meus links
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push("/perfil/")}>
+          <Palette className="h-3.5 w-3.5" />
+          Perfil & Marca
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

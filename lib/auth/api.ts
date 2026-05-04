@@ -109,7 +109,12 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
 
 export async function updateProfile(
   userId: string,
-  patch: Partial<Pick<Profile, "nome" | "whatsapp" | "slug">>,
+  patch: Partial<
+    Pick<
+      Profile,
+      "nome" | "whatsapp" | "slug" | "logo_url" | "cor_primaria" | "tagline"
+    >
+  >,
 ): Promise<Profile> {
   const sb = getSupabase();
   const { data, error } = await sb

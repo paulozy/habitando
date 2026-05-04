@@ -7,6 +7,7 @@ import { buildShareURL } from "@/lib/url-state";
 import { useScenariosStore } from "@/lib/storage/use-scenarios-store";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { useShareMetaStore } from "@/lib/storage/use-share-meta-store";
+import { useBrandingStore } from "@/lib/branding/use-branding-store";
 import { cn } from "@/lib/utils";
 
 interface DevolverButtonProps {
@@ -30,14 +31,21 @@ export function DevolverButton({
   const received = useCorretorStore((s) => s.received);
   const scenarios = useScenariosStore((s) => s.scenarios);
   const remoteId = useShareMetaStore((s) => s.remoteId);
+  const branding = useBrandingStore((s) => s.branding);
 
   if (!received) return null;
 
   const handleClick = () => {
     if (typeof window === "undefined") return;
-    const link = remoteId
-      ? `${window.location.origin}/simulador/?c=${remoteId}`
-      : buildShareURL(scenarios, received);
+    let link: string;
+    if (remoteId) {
+      // Mantém URL vanity (com slug) se o cliente recebeu via /c/<slug>/
+      link = branding?.slug
+        ? `${window.location.origin}/c/${branding.slug}/${remoteId}`
+        : `${window.location.origin}/simulador/?c=${remoteId}`;
+    } else {
+      link = buildShareURL(scenarios, received);
+    }
     const msg = `Olá ${received.nome}, ajustei aqui no Habitando o cenário: ${link}`;
     const url = `https://wa.me/${received.whatsapp}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener");

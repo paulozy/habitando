@@ -43,6 +43,8 @@ import { ScenarioComparar } from "@/components/scenarios/scenario-comparar";
 import { ShareControls } from "@/components/share/share-controls";
 import { DevolverButton } from "@/components/share/devolver-button";
 import { HeaderIdentitySlot } from "@/components/auth/header-identity-slot";
+import { BrandedShell } from "@/components/branding/branded-shell";
+import { useBrandingStore } from "@/lib/branding/use-branding-store";
 import { ScenarioPersist } from "@/lib/storage/persist";
 import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { cn } from "@/lib/utils";
@@ -89,7 +91,7 @@ export default function Home() {
     <FormProvider {...form}>
       <ScenarioPersist />
       <DevolverButton variant="sticky" />
-      <div className="flex flex-col min-h-full pb-20 md:pb-0">
+      <BrandingShellOuter className="flex flex-col min-h-full pb-20 md:pb-0">
         <Header
           onResetAtivo={() => {
             const cfg = defaultConfig();
@@ -145,9 +147,68 @@ export default function Home() {
             </TabsContent>
           </Tabs>
         </main>
-      </div>
+        <PoweredByFooter />
+      </BrandingShellOuter>
     </FormProvider>
     </TooltipProvider>
+  );
+}
+
+/**
+ * Wrapper que aplica branding (cor primária via CSS var) quando o cliente
+ * recebeu link de um corretor com marca configurada.
+ */
+function BrandingShellOuter({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const branding = useBrandingStore((s) => s.branding);
+  return (
+    <BrandedShell branding={branding} className={className}>
+      {children}
+    </BrandedShell>
+  );
+}
+
+/** Wordmark com logo (se houver) e nome do corretor. */
+function BrandedWordmark({
+  nome,
+  logoUrl,
+}: {
+  nome: string;
+  logoUrl: string | null;
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      {logoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={`Logo ${nome}`}
+          className="h-6 w-6 rounded-sm object-contain bg-white/5 p-0.5"
+        />
+      )}
+      <span className="text-accent">{nome}</span>
+    </div>
+  );
+}
+
+/** Footer "Powered by Habitando" — só aparece em modo brandeado. */
+function PoweredByFooter() {
+  const branding = useBrandingStore((s) => s.branding);
+  if (!branding) return null;
+  return (
+    <div className="border-t border-border bg-paper-alt/40 py-3 text-center">
+      <a
+        href="/"
+        className="font-mono text-[10px] tracking-[0.18em] uppercase text-ink-muted hover:text-ink-soft transition-colors"
+      >
+        Powered by Habitando
+      </a>
+    </div>
   );
 }
 
@@ -234,6 +295,8 @@ function Header({
 }) {
   const received = useCorretorStore((s) => s.received);
   const isClienteMode = received !== null;
+  const branding = useBrandingStore((s) => s.branding);
+  const isBranded = isClienteMode && branding !== null;
 
   return (
     <header className="bg-ink text-white relative overflow-hidden">
@@ -242,20 +305,29 @@ function Header({
         className="absolute -top-16 -right-16 w-72 h-72 rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(201,151,58,.25) 0%, transparent 70%)",
+            "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 25%, transparent) 0%, transparent 70%)",
         }}
       />
       <div className="relative max-w-[1400px] mx-auto px-4 md:px-8 py-8 md:py-10">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <div className="font-mono text-[11px] tracking-[0.15em] uppercase text-accent mb-2 flex items-center gap-3">
-              <a href="/" className="hover:text-accent/80 transition-colors">
-                Habitando
-              </a>
-              <span className="text-white/20">·</span>
-              <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
-                FAQ
-              </a>
+              {isBranded && branding ? (
+                <BrandedWordmark
+                  nome={branding.nome}
+                  logoUrl={branding.logo_url}
+                />
+              ) : (
+                <>
+                  <a href="/" className="hover:text-accent/80 transition-colors">
+                    Habitando
+                  </a>
+                  <span className="text-white/20">·</span>
+                  <a href="/faq" className="hover:text-white/90 transition-colors text-white/60">
+                    FAQ
+                  </a>
+                </>
+              )}
             </div>
             {isClienteMode ? (
               <>

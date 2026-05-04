@@ -13,6 +13,7 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
      - Project → SQL Editor → New query
      - Copia conteúdo de `migrations/0001_create_shares.sql` → Run
      - Repete pra `migrations/0002_profiles_and_owner.sql`
+     - Repete pra `migrations/0003_branding.sql` (cria bucket Storage automaticamente)
    - **Opção B — CLI** (recomendado pra repositório versionado):
      ```bash
      # De dentro de web/ (onde está este supabase/ folder)
@@ -78,13 +79,32 @@ No Studio (Project → Table Editor → shares), você deve ver a row criada.
 | `id` | `uuid` PK (FK auth.users) | cascade delete |
 | `nome` | `text` | preenchido via trigger no signup |
 | `whatsapp` | `text?` | 12-13 dígitos com DDI, opcional |
-| `slug` | `text?` UNIQUE | reservado pra white-label futuro |
+| `slug` | `text?` UNIQUE | white-label vanity URL (`/c/<slug>/<id>`) |
 | `plano` | `text` | default `'free'` |
+| `logo_url` | `text?` | URL pública do Supabase Storage |
+| `cor_primaria` | `text?` | hex `#rrggbb` |
+| `tagline` | `text?` | até 80 chars |
 | `created_at`, `updated_at` | `timestamptz` | |
 
-**RLS**: usuário só lê/edita o próprio profile.
+**RLS**: usuário só lê/edita o próprio profile diretamente. Branding (campos públicos) acessível via RPC pública.
+
+**Constraints de slug**:
+- Formato: `^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$` (3-30 chars, lowercase, sem hyphen no início/fim)
+- Não pode estar na lista de palavras reservadas (rotas + marcas BR)
+
+**RPC públicas** (acessíveis por anon):
+- `get_public_branding(profile_id uuid)` — retorna nome/logo/cor/tagline/slug, sem PII (whatsapp/email)
+- `get_public_branding_by_slug(_slug text)` — mesma coisa, lookup por slug
 
 **Trigger**: `on_auth_user_created` cria a row em `profiles` lendo `nome`/`whatsapp` de `raw_user_meta_data` (passado em `signUp options.data`).
+
+### Storage: bucket `branding`
+
+- Public read (cliente vê logo sem login)
+- Path: `branding/logos/<user_id>/<filename>`
+- RLS: corretor só faz insert/update/delete em pasta com seu próprio `user_id`
+- Limite recomendado: 512 KB (resize client-side a 512px no maior lado antes de upload)
+- Formatos aceitos: PNG, WebP. SVG fora do MVP (precisa sanitização DOMPurify).
 
 ## Limites do free tier
 
