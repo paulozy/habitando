@@ -14,6 +14,7 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
      - Copia conteúdo de `migrations/0001_create_shares.sql` → Run
      - Repete pra `migrations/0002_profiles_and_owner.sql`
      - Repete pra `migrations/0003_branding.sql` (cria bucket Storage automaticamente)
+     - Repete pra `migrations/0004_leads.sql`
    - **Opção B — CLI** (recomendado pra repositório versionado):
      ```bash
      # De dentro de web/ (onde está este supabase/ folder)
@@ -97,6 +98,26 @@ No Studio (Project → Table Editor → shares), você deve ver a row criada.
 - `get_public_branding_by_slug(_slug text)` — mesma coisa, lookup por slug
 
 **Trigger**: `on_auth_user_created` cria a row em `profiles` lendo `nome`/`whatsapp` de `raw_user_meta_data` (passado em `signUp options.data`).
+
+### `leads`
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | `uuid` PK | gen_random_uuid |
+| `share_id` | `text` (FK shares) | cascade delete |
+| `owner_id` | `uuid` (FK auth.users) | denormalized pra RLS perf |
+| `nome` | `text?` | opcional |
+| `email` / `whatsapp` | `text?` | check: pelo menos um obrigatório |
+| `consent_lgpd` | `boolean` | obrigatório true pra insert |
+| `consent_at` | `timestamptz` | quando deu consentimento |
+| `user_agent` | `text?` | informativo |
+| `payload_snapshot` | `jsonb?` | scenarios que cliente viu no momento |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+**Unique index** `(share_id, coalesce(email, whatsapp))` — dedupe via upsert.
+
+**RLS**:
+- `anon insert/update`: só com `consent_lgpd=true` E share existe + owner_id bate
+- `authenticated select/update/delete`: só `owner_id = auth.uid()` (corretor lê seus leads)
 
 ### Storage: bucket `branding`
 

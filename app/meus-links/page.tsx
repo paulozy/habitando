@@ -3,9 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExternalLink, LogOut } from "lucide-react";
+import { ExternalLink, LogOut, Mail, MessageCircle, Target } from "lucide-react";
 import { Button } from "@/components/ui/primitives";
 import { listOwnedShares, signOut } from "@/lib/auth/api";
+import { countLeadsByShare, listLeadsForShare, type LeadRow } from "@/lib/leads/api";
 import { useAuthStore } from "@/lib/auth/use-auth-store";
 import { migrarPayload, type CorretorIdentity } from "@/lib/url-state";
 import type { Scenario } from "@/lib/storage/use-scenarios-store";
@@ -31,6 +32,7 @@ export default function MeusLinksPage() {
   const profile = useAuthStore((s) => s.profile);
 
   const [shares, setShares] = React.useState<ShareDecoded[] | null>(null);
+  const [leadCounts, setLeadCounts] = React.useState<Record<string, number>>({});
   const [error, setError] = React.useState<string | null>(null);
 
   // Redireciona pra /entrar se não autenticado
@@ -44,9 +46,17 @@ export default function MeusLinksPage() {
     if (status !== "authenticated") return;
     let cancelled = false;
     listOwnedShares()
-      .then((rows) => {
+      .then(async (rows) => {
         if (cancelled) return;
-        setShares(decodeRows(rows));
+        const decoded = decodeRows(rows);
+        setShares(decoded);
+        // Conta leads em paralelo
+        try {
+          const counts = await countLeadsByShare(decoded.map((s) => s.id));
+          if (!cancelled) setLeadCounts(counts);
+        } catch {
+          /* leads são opcionais; mostra a página sem badge se falhar */
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(err.message ?? "Erro ao carregar.");
@@ -128,7 +138,11 @@ export default function MeusLinksPage() {
         ) : (
           <div className="space-y-3">
             {shares.map((s) => (
-              <ShareCard key={s.id} share={s} />
+              <ShareCard
+                key={s.id}
+                share={s}
+                leadCount={leadCounts[s.id] ?? 0}
+              />
             ))}
           </div>
         )}
@@ -137,7 +151,13 @@ export default function MeusLinksPage() {
   );
 }
 
-function ShareCard({ share }: { share: ShareDecoded }) {
+function ShareCard({
+  share,
+  leadCount,
+}: {
+  share: ShareDecoded;
+  leadCount: number;
+}) {
   const primary = share.scenarios[0];
   const updatedAt = new Date(share.updated_at);
   const updatedRel = relativeTime(updatedAt);
@@ -148,7 +168,7 @@ function ShareCard({ share }: { share: ShareDecoded }) {
   });
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 hover:border-ink-soft transition-colors">
+    <div className="bg-card border border-border rounded-lg p-5 hover:border-ink-soft transition-colors space-y-3">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="font-medium text-ink text-[15px] mb-1 truncate">
@@ -169,6 +189,104 @@ function ShareCard({ share }: { share: ShareDecoded }) {
           Abrir
           <ExternalLink className="h-3.5 w-3.5" />
         </Link>
+      </div>
+
+      {leadCount > 0 && <LeadsDrawer shareId={share.id} count={leadCount} />}
+    </div>
+  );
+}
+
+function LeadsDrawer({ shareId, count }: { shareId: string; count: number }) {
+  const [open, setOpen] = React.useState(false);
+  const [leads, setLeads] = React.useState<LeadRow[] | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!open || leads !== null) return;
+    let cancelled = false;
+    listLeadsForShare(shareId)
+      .then((rows) => {
+        if (!cancelled) setLeads(rows);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message ?? "Erro");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, leads, shareId]);
+
+  return (
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className="rounded-md border border-accent/30 bg-accent/5 overflow-hidden"
+    >
+      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-accent/10 transition-colors">
+        <span className="inline-flex items-center gap-2 text-[13px] font-medium text-ink">
+          <Target className="h-3.5 w-3.5 text-accent" />
+          {count} {count === 1 ? "lead capturado" : "leads capturados"}
+        </span>
+        <span
+          aria-hidden
+          className="text-ink-muted text-xs transition-transform"
+        >
+          {open ? "▲" : "▼"}
+        </span>
+      </summary>
+      <div className="border-t border-accent/20 px-4 py-3 space-y-2">
+        {error && (
+          <div className="text-[12.5px] text-red">{error}</div>
+        )}
+        {leads === null && !error && (
+          <div className="text-[12.5px] text-ink-soft">Carregando…</div>
+        )}
+        {leads && leads.length === 0 && (
+          <div className="text-[12.5px] text-ink-soft">
+            Sem leads (estranho — recarregue a página).
+          </div>
+        )}
+        {leads?.map((lead) => (
+          <LeadItem key={lead.id} lead={lead} />
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function LeadItem({ lead }: { lead: LeadRow }) {
+  const created = relativeTime(new Date(lead.created_at));
+  return (
+    <div className="flex items-start justify-between gap-3 py-2 border-b border-accent/10 last:border-b-0">
+      <div className="flex-1 min-w-0">
+        <div className="font-medium text-ink text-[13.5px]">
+          {lead.nome ?? "Sem nome"}
+        </div>
+        <div className="text-[11.5px] text-ink-muted">{created}</div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {lead.whatsapp && (
+          <a
+            href={`https://wa.me/${lead.whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-[12.5px] text-green hover:text-green/80 font-mono"
+            title="Abrir WhatsApp"
+          >
+            <MessageCircle className="h-3 w-3" />
+            +{lead.whatsapp}
+          </a>
+        )}
+        {lead.email && (
+          <a
+            href={`mailto:${lead.email}`}
+            className="inline-flex items-center gap-1 text-[12.5px] text-blue hover:text-blue/80"
+            title="Enviar e-mail"
+          >
+            <Mail className="h-3 w-3" />
+            {lead.email}
+          </a>
+        )}
       </div>
     </div>
   );

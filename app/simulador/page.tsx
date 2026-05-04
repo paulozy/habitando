@@ -36,6 +36,7 @@ import {
   ParcelaSugeridaBlock,
 } from "@/components/form/sections";
 import { CenarioSummary } from "@/components/form/cenario-summary";
+import { LeadCtaCard } from "@/components/leads/lead-cta-card";
 import {
   Alertas,
   FluxoChart,
@@ -266,6 +267,8 @@ function ConfigPanel({ scenario }: { scenario: Scenario }) {
         </section>
 
         <ResultsPanel color={scenario.color} />
+
+        <LeadCtaCard />
       </div>
     );
   }
