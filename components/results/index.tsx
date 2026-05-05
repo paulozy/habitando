@@ -137,9 +137,9 @@ export function StatCards({
           />
           <StatCard
             tone="ink"
-            label="INCC mín. → máx."
-            value={`${fmt.formatBRL(s.minINCC)} → ${fmt.formatBRL(s.maxINCC)}`}
-            sub="Variação do INCC mensal"
+            label="INCC máx. → mín."
+            value={`${fmt.formatBRL(s.maxINCC)} → ${fmt.formatBRL(s.minINCC)}`}
+            sub="Variação do INCC mensal (cai com o tempo)"
           />
         </div>
       </div>

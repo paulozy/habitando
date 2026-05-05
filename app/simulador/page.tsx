@@ -60,9 +60,9 @@ export default function Home() {
   const scenarios = useScenariosStore((s) => s.scenarios);
   const activeId = useScenariosStore((s) => s.activeId);
   const setActive = useScenariosStore((s) => s.setActive);
-  const update = useScenariosStore((s) => s.update);
   const add = useScenariosStore((s) => s.add);
   const replaceAll = useScenariosStore((s) => s.replaceAll);
+  const resetActive = useScenariosStore((s) => s.resetActive);
   const setPendingLeadId = useShareMetaStore((s) => s.setPendingLeadId);
 
   // Captura ?lead=<id> da URL e armazena no store. Usado por
@@ -80,45 +80,19 @@ export default function Home() {
 
   const active = scenarios.find((s) => s.id === activeId)!;
 
-  const form = useForm<SimulacaoConfig>({
-    defaultValues: active.config,
-    mode: "onChange",
-  });
-
   const [view, setView] = React.useState<"config" | "comparar">("config");
-
-  // Quando o cenário ativo muda, hidrata o form com sua config
-  const lastSyncedId = React.useRef(activeId);
-  React.useEffect(() => {
-    if (lastSyncedId.current !== activeId) {
-      form.reset(active.config);
-      lastSyncedId.current = activeId;
-    }
-  }, [activeId, active.config, form]);
-
-  // Persiste alterações do form no cenário ativo (debounce simples)
-  const watched = useWatch<SimulacaoConfig>({ control: form.control });
-  React.useEffect(() => {
-    if (!watched) return;
-    const t = setTimeout(() => {
-      update(activeId, watched as SimulacaoConfig);
-    }, 200);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watched), activeId]);
 
   return (
     <TooltipProvider>
-    <FormProvider {...form}>
       <ScenarioPersist />
       <DevolverButton variant="sticky" />
       <BrandingShellOuter className="flex flex-col min-h-full pb-20 md:pb-0">
         <PendingLeadBanner />
         <Header
           onResetAtivo={() => {
-            const cfg = defaultConfig();
-            update(activeId, cfg);
-            form.reset(cfg);
+            // resetActive troca o id do cenário ativo, forçando o
+            // ScenarioFormShell a remontar com defaultValues fresh.
+            resetActive();
           }}
           onLimparTudo={() => {
             const cfg = defaultConfig();
@@ -132,7 +106,6 @@ export default function Home() {
               config: cfg,
             };
             replaceAll([seed]);
-            form.reset(cfg);
             // Limpa localStorage explicitamente para garantir
             try {
               window.localStorage.removeItem("can-i-buy:scenarios");
@@ -161,7 +134,12 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="config">
-              <ConfigPanel scenario={active} />
+              {/* key={active.id} força remount quando o cenário ativo
+                  muda (hidratação via ?c=, troca de aba, reset, etc).
+                  Garante que useForm pegue defaultValues fresh, sem
+                  depender de form.reset manual e sem race com o
+                  watched effect. */}
+              <ScenarioFormShell key={active.id} scenario={active} />
             </TabsContent>
 
             <TabsContent value="comparar">
@@ -171,8 +149,38 @@ export default function Home() {
         </main>
         <PoweredByFooter />
       </BrandingShellOuter>
-    </FormProvider>
     </TooltipProvider>
+  );
+}
+
+/**
+ * Form shell isolado por cenário. Renderizado com `key={scenario.id}` no
+ * parent: quando o id muda (hidratação, reset, troca de aba), React
+ * remonta o subtree e a `useForm` re-inicializa com o novo `defaultValues`.
+ */
+function ScenarioFormShell({ scenario }: { scenario: Scenario }) {
+  const update = useScenariosStore((s) => s.update);
+
+  const form = useForm<SimulacaoConfig>({
+    defaultValues: scenario.config,
+    mode: "onChange",
+  });
+
+  // Persiste alterações do form no cenário (debounce simples)
+  const watched = useWatch<SimulacaoConfig>({ control: form.control });
+  React.useEffect(() => {
+    if (!watched) return;
+    const t = setTimeout(() => {
+      update(scenario.id, watched as SimulacaoConfig);
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(watched), scenario.id]);
+
+  return (
+    <FormProvider {...form}>
+      <ConfigPanel scenario={scenario} />
+    </FormProvider>
   );
 }
 

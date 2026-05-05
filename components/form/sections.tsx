@@ -338,17 +338,26 @@ export function EntradaSection() {
             />
           </Field>
           <Field
-            label="INCC mensal (decimal)"
-            help="Índice Nacional de Custos da Construção (FGV). Use 0,007 para 0,7%/mês (previsão meio-termo). Mediana 5y ≈ 0,0045 (0,45%). Cuidado: 0,7 = 70%, não 0,7%."
+            label="INCC mensal (%)"
+            help="Índice Nacional de Custos da Construção (FGV). Use 0,7 para 0,7%/mês (previsão meio-termo). Mediana 5y ≈ 0,45%. Histórico 2024-25 entre 0,1 e 0,9."
           >
             <Controller
               control={control}
               name="entrada.incc_mensal_percent"
               render={({ field }) => (
                 <NumberInputBR
-                  value={field.value}
-                  onChange={field.onChange}
-                  maxDecimals={5}
+                  suffix="%"
+                  value={
+                    field.value !== undefined && field.value !== null
+                      ? field.value * 100
+                      : undefined
+                  }
+                  onChange={(v) =>
+                    field.onChange(
+                      v !== undefined && v !== null ? v / 100 : undefined,
+                    )
+                  }
+                  maxDecimals={3}
                 />
               )}
             />

@@ -34,6 +34,11 @@ interface ScenariosState {
   update: (id: string, config: SimulacaoConfig) => void;
   setActive: (id: string) => void;
   replaceAll: (scenarios: Scenario[]) => void;
+  /**
+   * Reseta o cenário ativo trocando seu id (força remount do form
+   * key-ado por scenario.id). Usado pelo botão "Resetar cenário".
+   */
+  resetActive: () => string;
 }
 
 function initial(): { scenarios: Scenario[]; activeId: string } {
@@ -116,6 +121,19 @@ export const useScenariosStore = create<ScenariosState>((set, get) => ({
   replaceAll: (scenarios) => {
     if (!scenarios.length) return;
     set({ scenarios, activeId: scenarios[0].id });
+  },
+
+  resetActive: () => {
+    const state = get();
+    const cfg = defaultConfig();
+    const newScenarioId = newId();
+    const next = state.scenarios.map((s) =>
+      s.id === state.activeId
+        ? { ...s, id: newScenarioId, config: cfg, label: cfg.rotulo }
+        : s,
+    );
+    set({ scenarios: next, activeId: newScenarioId });
+    return newScenarioId;
   },
 }));
 
