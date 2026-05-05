@@ -73,7 +73,7 @@ function Hero() {
           <div className="flex flex-wrap items-center gap-2 mb-6">
             <span className="inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.15em] uppercase bg-amber-soft text-amber rounded-full px-3 py-1">
               <span aria-hidden>⚡</span>
-              Em validação · algumas funcionalidades em desenvolvimento
+              Em validação · principais funcionalidades já no ar
             </span>
             <span className="inline-block font-mono text-[11px] tracking-[0.18em] uppercase text-accent border border-accent/40 rounded-full px-3 py-1">
               🤝 Para corretores e imobiliárias
@@ -266,29 +266,29 @@ function BeneficiosSection() {
         desc: "Gere um PDF com capa, indicadores, tabela mês a mês, gráfico e comparativo. Layout pronto pra mandar pro cliente via WhatsApp.",
         status: "ready",
       },
-      // ── Em desenvolvimento ──
       {
         icon: "🎨",
         title: "Sua marca, seu link",
-        desc: "Logo da imobiliária, cores próprias, link personalizado. O cliente nem percebe que é uma ferramenta externa — vira parte da sua marca.",
-        status: "soon",
+        desc: "Logo da imobiliária, cor primária e link personalizado (habitando.app/c/sua-marca/...). O cliente vê sua identidade do começo ao fim, no simulador e no PDF.",
+        status: "ready",
       },
       {
         icon: "🎯",
-        title: "Captura de contatos automática",
-        desc: "Cliente preenche WhatsApp/email no fim da simulação. Você recebe notificação na hora, com os dados que ele simulou — e exporta em planilha quando quiser.",
-        status: "soon",
+        title: "Captura de contatos no link",
+        desc: "Cliente preenche WhatsApp/email pra ver o resultado completo. Em /leads você vê a fila com o que cada um simulou e responde via WhatsApp com 1 clique.",
+        status: "ready",
       },
+      {
+        icon: "📊",
+        title: "Histórico por lead",
+        desc: "Cada lead vem com o snapshot do que o cliente preencheu — renda, FGTS, ato, cenário. Você sabe onde ele empacou e devolve uma proposta sob medida.",
+        status: "ready",
+      },
+      // ── Em desenvolvimento ──
       {
         icon: "🏢",
         title: "Cadastro de empreendimentos",
         desc: "Pré-cadastre os seus apartamentos (60m², 54m², 48m²) com valores e parcelas. Cliente entra, escolhe o cenário e ajusta só renda/FGTS — fricção zero.",
-        status: "soon",
-      },
-      {
-        icon: "📊",
-        title: "Histórico por cliente",
-        desc: "Veja tudo que o cliente simulou: quais empreendimentos comparou, qual cenário escolheu, quanto tempo passou na ferramenta. Vendedor com superpoder.",
         status: "soon",
       },
       {
@@ -624,18 +624,20 @@ function FAQSection() {
                     Exportação em PDF com capa, cenários e comparativo
                   </li>
                   <li>Compartilhamento de cenários por link</li>
+                  <li>White-label (logo, cor e link com sua marca)</li>
+                  <li>
+                    Captura de contatos no link + fila de leads com snapshot
+                    do que cada cliente simulou
+                  </li>
+                  <li>Resposta rápida pelo WhatsApp com link sob medida</li>
                 </ul>
               </div>
               <div>
                 <strong className="text-amber">Em desenvolvimento:</strong>
                 <ul className="list-disc pl-5 mt-1.5 space-y-1">
-                  <li>White-label (sua marca, sua cor, seu link)</li>
-                  <li>
-                    Captura de contatos automática direto no seu WhatsApp
-                  </li>
                   <li>Cadastro de empreendimentos (catálogo)</li>
-                  <li>Histórico de simulações por cliente</li>
                   <li>Múltiplos corretores na mesma conta</li>
+                  <li>Notificação push quando um lead chega</li>
                 </ul>
               </div>
               <p>
