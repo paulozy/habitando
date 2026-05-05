@@ -16,6 +16,7 @@ Backend mínimo pra short links de compartilhamento (sem login, sem realtime).
      - Repete pra `migrations/0003_branding.sql` (cria bucket Storage automaticamente)
      - Repete pra `migrations/0004_leads.sql`
      - Repete pra `migrations/0005_leads_status_and_share_link.sql`
+     - Repete pra `migrations/0006_ref_visits.sql`
    - **Opção B — CLI** (recomendado pra repositório versionado):
      ```bash
      # De dentro de web/ (onde está este supabase/ folder)

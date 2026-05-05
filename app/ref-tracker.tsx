@@ -1,12 +1,11 @@
 "use client";
 
-import { track } from "@vercel/analytics";
 import { useEffect } from "react";
+import { trackRefVisit } from "@/lib/analytics/ref-tracker";
 
 export function RefTracker() {
   useEffect(() => {
-    const ref = new URLSearchParams(window.location.search).get("ref");
-    if (ref) track("ref_visit", { ref });
+    void trackRefVisit(window.location.search);
   }, []);
   return null;
 }
