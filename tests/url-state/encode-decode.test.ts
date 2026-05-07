@@ -45,89 +45,7 @@ describe("url-state encode/decode", () => {
     expect(dec.ok).toBe(false);
   });
 
-  it("encode/decode preserva identidade do corretor quando passada", () => {
-    const corretor = { nome: "João Silva", whatsapp: "5511999998888" };
-    const encoded = encodeScenarios(scenarios, corretor);
-    const dec = decodeScenarios(encoded);
-    expect(dec.ok).toBe(true);
-    expect(dec.corretor).toEqual(corretor);
-  });
-
-  it("decode sem corretor retorna corretor undefined", () => {
-    const encoded = encodeScenarios(scenarios);
-    const dec = decodeScenarios(encoded);
-    expect(dec.ok).toBe(true);
-    expect(dec.corretor).toBeUndefined();
-  });
-
-  it("decode normaliza WhatsApp com formatação (parênteses, traços, espaços)", async () => {
-    const { compressToEncodedURIComponent } = await import("lz-string");
-    const payload = {
-      v: 6,
-      scenarios: [
-        {
-          id: "a",
-          label: scenarios[0].label,
-          color: scenarios[0].color,
-          config: scenarios[0].config,
-        },
-      ],
-      corretor: { nome: "João", whatsapp: "(11) 99999-8888" },
-    };
-    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
-    const dec = decodeScenarios(encoded);
-    expect(dec.ok).toBe(true);
-    expect(dec.corretor?.whatsapp).toBe("5511999998888");
-  });
-
-  it("decode adiciona DDI 55 quando corretor envia só DDD + número", async () => {
-    const { compressToEncodedURIComponent } = await import("lz-string");
-    const payload = {
-      v: 6,
-      scenarios: [
-        {
-          id: "a",
-          label: scenarios[0].label,
-          color: scenarios[0].color,
-          config: scenarios[0].config,
-        },
-      ],
-      // 11 dígitos: DDD 11 + número 9 dígitos. Sem 55.
-      corretor: { nome: "João", whatsapp: "11993235002" },
-    };
-    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
-    const dec = decodeScenarios(encoded);
-    expect(dec.ok).toBe(true);
-    expect(dec.corretor?.whatsapp).toBe("5511993235002");
-  });
-
-  it("decode descarta corretor inválido mas mantém os cenários válidos", async () => {
-    // Validação lenient: corretor com WhatsApp inválido (5 dígitos) é
-    // descartado, mas o cenário válido é preservado.
-    const { compressToEncodedURIComponent } = await import("lz-string");
-    const payload = {
-      v: 6,
-      scenarios: [
-        {
-          id: "a",
-          label: scenarios[0].label,
-          color: scenarios[0].color,
-          config: scenarios[0].config,
-        },
-      ],
-      corretor: { nome: "João", whatsapp: "12345" }, // muito curto
-    };
-    const encoded = compressToEncodedURIComponent(JSON.stringify(payload));
-    const dec = decodeScenarios(encoded);
-    expect(dec.ok).toBe(true);
-    expect(dec.corretor).toBeUndefined();
-    expect(dec.scenarios).toHaveLength(1);
-  });
-
   it("decode mantém só cenários válidos quando outros falham (proteção contra rascunho)", async () => {
-    // Caso real: corretor adiciona 2º cenário com defaults (valor_total=0)
-    // que falha schema.positive(). Sem lenient, o 1º (válido) seria
-    // perdido junto. Com lenient, só o inválido é descartado.
     const { compressToEncodedURIComponent } = await import("lz-string");
     const validConfig = scenarios[0].config;
     const draftConfig = {
@@ -135,7 +53,7 @@ describe("url-state encode/decode", () => {
       imovel: { ...validConfig.imovel, valor_total: 0 }, // falha .positive()
     };
     const payload = {
-      v: 6,
+      v: 7,
       scenarios: [
         { id: "a", label: "Válido", color: "#000", config: validConfig },
         { id: "b", label: "Rascunho", color: "#111", config: draftConfig },
@@ -156,7 +74,7 @@ describe("url-state encode/decode", () => {
       imovel: { ...validConfig.imovel, valor_total: 0 },
     };
     const payload = {
-      v: 6,
+      v: 7,
       scenarios: [
         { id: "a", label: "Rascunho A", color: "#000", config: draftConfig },
         { id: "b", label: "Rascunho B", color: "#111", config: draftConfig },
@@ -168,8 +86,30 @@ describe("url-state encode/decode", () => {
   });
 });
 
-describe("url-state migrator v5→v6", () => {
-  it("payload v5 (sem corretor) é aceito como v6 após migração", async () => {
+describe("url-state migrator v6→v7 (drop corretor)", () => {
+  it("payload v6 com corretor é lido como v7 sem corretor", async () => {
+    const { compressToEncodedURIComponent } = await import("lz-string");
+    const v6Payload = {
+      v: 6,
+      scenarios: [
+        {
+          id: "a",
+          label: scenarios[0].label,
+          color: scenarios[0].color,
+          config: scenarios[0].config,
+        },
+      ],
+      corretor: { nome: "João", whatsapp: "5511999998888" },
+    };
+    const encoded = compressToEncodedURIComponent(JSON.stringify(v6Payload));
+    const dec = decodeScenarios(encoded);
+    expect(dec.ok).toBe(true);
+    expect(dec.scenarios).toHaveLength(1);
+    // Migrator v6→v7 stripa o campo silenciosamente — DecodeResult não tem mais corretor
+    expect((dec as { corretor?: unknown }).corretor).toBeUndefined();
+  });
+
+  it("payload v5 (sem corretor) cascateia até v7 sem erro", async () => {
     const { compressToEncodedURIComponent } = await import("lz-string");
     const v5Payload = {
       v: 5,
@@ -186,7 +126,6 @@ describe("url-state migrator v5→v6", () => {
     const dec = decodeScenarios(encoded);
     expect(dec.ok).toBe(true);
     expect(dec.scenarios).toHaveLength(1);
-    expect(dec.corretor).toBeUndefined();
   });
 });
 
