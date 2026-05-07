@@ -29,8 +29,12 @@ import { z } from "zod";
  * v5 → v6 (compartilhamento corretor↔cliente):
  *   - payload ganha campo opcional `corretor: { nome, whatsapp }`
  *   - migrator é noop: campo opcional, payloads antigos continuam válidos
+ *
+ * v6 → v7 (pivot pra comprador 1ª casa):
+ *   - drop do campo `corretor`. URLs antigas com corretor são lidas, mas o
+ *     campo é descartado silenciosamente.
  */
-export const LATEST_SCHEMA_VERSION = 6;
+export const LATEST_SCHEMA_VERSION = 7;
 
 const ScenarioSchema = z.object({
   id: z.string(),
@@ -39,44 +43,9 @@ const ScenarioSchema = z.object({
   config: SimulacaoConfigSchema,
 });
 
-/**
- * Normaliza um WhatsApp brasileiro:
- * - Remove tudo que não é dígito
- * - Se já tem 12-13 dígitos começando com 55, mantém
- * - Se tem 10-11 dígitos (DDD + número, sem DDI), prepende 55
- * - Caso contrário, retorna os dígitos como estão (vai falhar na regex)
- */
-function normalizeBrazilianWhatsApp(input: unknown): unknown {
-  if (typeof input !== "string") return input;
-  const digits = input.replace(/\D/g, "");
-  if (digits.length >= 12 && digits.length <= 13 && digits.startsWith("55")) {
-    return digits;
-  }
-  if (digits.length === 10 || digits.length === 11) {
-    return "55" + digits;
-  }
-  return digits;
-}
-
-export const CorretorIdentitySchema = z.object({
-  nome: z.string().min(1).max(60),
-  whatsapp: z.preprocess(
-    normalizeBrazilianWhatsApp,
-    z
-      .string()
-      .regex(
-        /^55\d{10,11}$/,
-        "WhatsApp inválido. Use DDD + número (ex: 11999998888)",
-      ),
-  ),
-});
-
-export type CorretorIdentity = z.infer<typeof CorretorIdentitySchema>;
-
 const PayloadSchema = z.object({
   v: z.number().int().positive(),
   scenarios: z.array(ScenarioSchema).min(1),
-  corretor: CorretorIdentitySchema.optional(),
 });
 
 export type SharePayload = z.infer<typeof PayloadSchema>;
@@ -104,8 +73,15 @@ const migrators: Record<number, (data: any) => any> = {
     return next;
   },
   5: (data: any) => {
-    // v5 → v6: nada a transformar, campo `corretor` é opcional.
+    // v5 → v6: nada a transformar, campo `corretor` era opcional.
     return structuredClone(data);
+  },
+  6: (data: any) => {
+    // v6 → v7: drop campo `corretor`. URLs antigas que ainda carregam a
+    // identidade do corretor passam a ser lidas como cenários puros.
+    const next = structuredClone(data);
+    delete next.corretor;
+    return next;
   },
 };
 
@@ -246,14 +222,10 @@ function migrarCenarioV1(s: any): any {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-export function encodeScenarios(
-  scenarios: Scenario[],
-  corretor?: CorretorIdentity,
-): string {
+export function encodeScenarios(scenarios: Scenario[]): string {
   const payload: SharePayload = {
     v: LATEST_SCHEMA_VERSION,
     scenarios,
-    ...(corretor ? { corretor } : {}),
   };
   const json = JSON.stringify(payload);
   return compressToEncodedURIComponent(json);
@@ -262,7 +234,6 @@ export function encodeScenarios(
 export interface DecodeResult {
   ok: boolean;
   scenarios?: Scenario[];
-  corretor?: CorretorIdentity;
   error?: string;
 }
 
@@ -284,12 +255,11 @@ function validatePayloadLenient(rawData: unknown): DecodeResult {
     return {
       ok: true,
       scenarios: strict.data.scenarios,
-      corretor: strict.data.corretor,
     };
   }
 
   // Fallback: filtra cenários individualmente
-  const data = rawData as { scenarios?: unknown[]; corretor?: unknown };
+  const data = rawData as { scenarios?: unknown[] };
   if (!Array.isArray(data?.scenarios)) {
     return {
       ok: false,
@@ -325,14 +295,7 @@ function validatePayloadLenient(rawData: unknown): DecodeResult {
     );
   }
 
-  // Tenta salvar o corretor mesmo se a validação estrita falhou
-  let corretor: CorretorIdentity | undefined;
-  if (data.corretor) {
-    const cr = CorretorIdentitySchema.safeParse(data.corretor);
-    if (cr.success) corretor = cr.data;
-  }
-
-  return { ok: true, scenarios: validScenarios, corretor };
+  return { ok: true, scenarios: validScenarios };
 }
 
 export function decodeScenarios(s: string): DecodeResult {
@@ -380,12 +343,9 @@ export function migrarPayload(raw: unknown): DecodeResult {
   }
 }
 
-export function buildShareURL(
-  scenarios: Scenario[],
-  corretor?: CorretorIdentity,
-): string {
+export function buildShareURL(scenarios: Scenario[]): string {
   if (typeof window === "undefined") return "";
-  const encoded = encodeScenarios(scenarios, corretor);
+  const encoded = encodeScenarios(scenarios);
   const url = new URL(window.location.href);
   url.search = "";
   url.searchParams.set("s", encoded);

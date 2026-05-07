@@ -6,7 +6,6 @@ import {
   SCENARIO_LIMIT,
   useScenariosStore,
 } from "@/lib/storage/use-scenarios-store";
-import { useCorretorStore } from "@/lib/storage/use-corretor-store";
 import { Button } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +21,6 @@ export function ScenarioBar({
   const duplicate = useScenariosStore((s) => s.duplicate);
   const remove = useScenariosStore((s) => s.remove);
   const rename = useScenariosStore((s) => s.rename);
-  const isClienteMode = useCorretorStore((s) => s.received !== null);
-
-  // Em modo cliente, esconde a barra inteira se o corretor mandou só 1 cenário
-  // (não há o que trocar). Se mandou 2+, mostra como navegação read-only.
-  if (isClienteMode && scenarios.length < 2) return null;
 
   return (
     <div className="bg-paper-alt border-b border-border">
@@ -37,8 +31,7 @@ export function ScenarioBar({
             label={s.label}
             color={s.color}
             active={s.id === activeId}
-            canRemove={!isClienteMode && scenarios.length > 1}
-            canMutate={!isClienteMode}
+            canRemove={scenarios.length > 1}
             onClick={() => onSwitch(s.id)}
             onRename={(label) => rename(s.id, label)}
             onDuplicate={() => {
@@ -47,7 +40,7 @@ export function ScenarioBar({
             onRemove={() => remove(s.id)}
           />
         ))}
-        {!isClienteMode && scenarios.length < SCENARIO_LIMIT && (
+        {scenarios.length < SCENARIO_LIMIT && (
           <Button
             variant="ghost"
             size="sm"
@@ -69,7 +62,6 @@ function ScenarioTab({
   color,
   active,
   canRemove,
-  canMutate,
   onClick,
   onRename,
   onDuplicate,
@@ -79,7 +71,6 @@ function ScenarioTab({
   color: string;
   active: boolean;
   canRemove: boolean;
-  canMutate: boolean;
   onClick: () => void;
   onRename: (label: string) => void;
   onDuplicate: () => void;
@@ -127,30 +118,24 @@ function ScenarioTab({
         <button
           type="button"
           onClick={onClick}
-          onDoubleClick={() => canMutate && setEditing(true)}
+          onDoubleClick={() => setEditing(true)}
           className={cn(
             "text-sm font-medium truncate max-w-[180px] whitespace-nowrap",
             active ? "text-ink" : "text-ink-soft",
           )}
-          title={
-            canMutate
-              ? "Clique para abrir · duplo-clique para renomear"
-              : "Clique para abrir"
-          }
+          title="Clique para abrir · duplo-clique para renomear"
         >
           {label}
         </button>
       )}
-      {canMutate && (
-        <button
-          type="button"
-          onClick={onDuplicate}
-          title="Duplicar"
-          className="rounded p-1 text-ink-muted hover:text-ink hover:bg-paper-alt"
-        >
-          <Copy className="h-3 w-3" />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onDuplicate}
+        title="Duplicar"
+        className="rounded p-1 text-ink-muted hover:text-ink hover:bg-paper-alt"
+      >
+        <Copy className="h-3 w-3" />
+      </button>
       {canRemove && (
         <button
           type="button"

@@ -1,9 +1,5 @@
-import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
-import { RefTracker } from "@/app/ref-tracker";
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { DM_Mono, DM_Sans, DM_Serif_Display } from "next/font/google";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -27,11 +23,11 @@ const dmMono = DM_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Habitando · o simulador que fecha venda",
+    default: "Habitando · simule sua primeira casa",
     template: "%s · Habitando",
   },
   description:
-    "Habitando é o simulador imobiliário para corretores. Mostra o número real ao cliente, com a sua marca, captura de leads e PDF profissional. Cliente que entende, fecha.",
+    "Simulador honesto pro comprador de primeira casa: ato, anuais, INCC, FGTS — veja o cenário real mês a mês antes de fechar. 100% local, sem cadastro.",
 };
 
 export default function RootLayout({
@@ -43,10 +39,7 @@ export default function RootLayout({
       className={`${dmSans.variable} ${dmSerif.variable} ${dmMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
-        <AuthBootstrap />
-        <NuqsAdapter>{children}</NuqsAdapter>
-        <Analytics />
-        <RefTracker />
+        {children}
       </body>
     </html>
   );

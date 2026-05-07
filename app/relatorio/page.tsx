@@ -11,9 +11,6 @@ import {
 } from "@/lib/calculation-engine";
 import { decodeScenarios } from "@/lib/url-state";
 import type { Scenario } from "@/lib/storage/use-scenarios-store";
-import { BrandedShell } from "@/components/branding/branded-shell";
-import { fetchBrandingBySlug } from "@/lib/branding/api";
-import type { PublicBranding } from "@/lib/branding/use-branding-store";
 import "./print.css";
 
 export default function RelatorioPage() {
@@ -35,7 +32,6 @@ function Loading() {
 function RelatorioContent() {
   const params = useSearchParams();
   const [scenarios, setScenarios] = React.useState<Scenario[] | null>(null);
-  const [branding, setBranding] = React.useState<PublicBranding | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -52,14 +48,6 @@ function RelatorioContent() {
       return;
     }
     setScenarios(dec.scenarios);
-
-    // Branding: se a URL traz ?u=<slug>, busca branding (live)
-    const slug = params.get("u");
-    if (slug) {
-      fetchBrandingBySlug(slug)
-        .then((b) => setBranding(b))
-        .catch(() => setBranding(null));
-    }
   }, [params]);
 
   if (error) {
@@ -80,27 +68,24 @@ function RelatorioContent() {
   if (!scenarios) return <Loading />;
 
   return (
-    <BrandedShell branding={branding} className="bg-white text-ink min-h-screen">
-      <ToolBar branding={branding} />
-      <Capa scenarios={scenarios} branding={branding} />
+    <div className="bg-white text-ink min-h-screen">
+      <ToolBar />
+      <Capa scenarios={scenarios} />
       {scenarios.map((s) => (
         <CenarioPagina key={s.id} scenario={s} />
       ))}
       {scenarios.length > 1 && <ComparativoPagina scenarios={scenarios} />}
-      <Rodape branding={branding} />
-    </BrandedShell>
+      <Rodape />
+    </div>
   );
 }
 
-/* ============================================================
- *  Toolbar (apenas tela)
- * ============================================================ */
-function ToolBar({ branding }: { branding: PublicBranding | null }) {
+function ToolBar() {
   return (
     <div className="no-print sticky top-0 z-50 bg-ink text-white border-b border-white/10">
       <div className="max-w-[210mm] mx-auto px-6 py-3 flex items-center justify-between">
         <div className="font-mono text-[11px] tracking-[0.2em] uppercase text-accent">
-          {branding?.nome ?? "Habitando"} · Relatório
+          Habitando · Relatório
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -127,45 +112,19 @@ function ToolBar({ branding }: { branding: PublicBranding | null }) {
   );
 }
 
-/* ============================================================
- *  Capa
- * ============================================================ */
-function Capa({
-  scenarios,
-  branding,
-}: {
-  scenarios: Scenario[];
-  branding: PublicBranding | null;
-}) {
+function Capa({ scenarios }: { scenarios: Scenario[] }) {
   const data = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
 
-  const marca = (branding?.nome ?? "Habitando").toUpperCase();
-  const tagline = branding?.tagline ?? "Simulação financeira imobiliária";
-
   return (
     <section className="page capa">
       <div className="capa-inner">
         <div className="capa-brand">
-          {branding?.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={branding.logo_url}
-              alt={`Logo ${branding.nome}`}
-              className="capa-logo"
-              style={{
-                maxHeight: "32mm",
-                maxWidth: "60mm",
-                marginBottom: "4mm",
-                objectFit: "contain",
-              }}
-            />
-          ) : null}
-          <div className="capa-marca">{marca}</div>
-          <div className="capa-tagline">{tagline}</div>
+          <div className="capa-marca">HABITANDO</div>
+          <div className="capa-tagline">Simulação financeira imobiliária</div>
         </div>
 
         <div className="capa-titulo">
@@ -206,9 +165,6 @@ function Capa({
   );
 }
 
-/* ============================================================
- *  Página por cenário
- * ============================================================ */
 function CenarioPagina({ scenario }: { scenario: Scenario }) {
   const result = React.useMemo(
     () => calcSimulacao(scenario.config),
@@ -438,9 +394,6 @@ function ParecerBlock({ result }: { result: ResultadoSimulacao }) {
   );
 }
 
-/* ============================================================
- *  Comparativo final
- * ============================================================ */
 function ComparativoPagina({ scenarios }: { scenarios: Scenario[] }) {
   const enriched = scenarios.map((s) => ({
     s,
@@ -544,28 +497,14 @@ function ComparativoPagina({ scenarios }: { scenarios: Scenario[] }) {
   );
 }
 
-/* ============================================================
- *  Rodapé
- * ============================================================ */
-function Rodape({ branding }: { branding: PublicBranding | null }) {
+function Rodape() {
   return (
     <footer className="no-print py-6 text-center text-[11px] text-ink-muted border-t border-border">
-      {branding ? (
-        <>
-          Gerado por <strong>{branding.nome}</strong>
-          <span className="mx-2">·</span>
-          <span>Powered by Habitando · habitando.app</span>
-        </>
-      ) : (
-        <>Gerado pelo Habitando · habitando.app</>
-      )}
+      Gerado pelo Habitando · habitando.app
     </footer>
   );
 }
 
-/* ============================================================
- *  Helpers
- * ============================================================ */
 function parseLocal(s: string): Date {
   const [y, m, d] = s.split("-").map((x) => parseInt(x, 10));
   return new Date(y || 2026, (m ?? 1) - 1, d ?? 1);

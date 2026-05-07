@@ -391,8 +391,8 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
               duas vezes em cima), duplicar e remover quando quiser.
             </p>
             <p>
-              Útil pra mostrar ao cliente: &quot;veja a diferença entre o
-              apartamento de 60m² e o de 54m²&quot;, ou &quot;e se você desse
+              Útil pra comparar opções reais: &quot;a diferença entre o
+              apartamento de 60m² e o de 54m²&quot;, ou &quot;e se eu desse
               R$ 30 mil de ato em vez de R$ 20 mil?&quot;.
             </p>
           </FaqItem>
@@ -438,16 +438,22 @@ m35 (95% acum):   2.996 × 95%  = R$ 2.846  ← teto`}
             </p>
           </FaqItem>
 
-          <FaqItem question="Posso compartilhar uma simulação com meu cliente?">
+          <FaqItem question="Posso compartilhar uma simulação com alguém?">
             <p>
-              Sim. Clique em <strong>&quot;Compartilhar&quot;</strong> no topo
-              da tela — gera um link com a simulação completa. Você manda no
-              WhatsApp do cliente e quando ele abrir, vê exatamente o que você
-              vê.
+              Sim, e sem precisar de conta. Clique em{" "}
+              <strong>&quot;Compartilhar&quot;</strong> no topo da tela — a
+              gente gera um link com o cenário inteiro embutido. Quem abrir
+              vê exatamente os mesmos números, mesmo sem ter usado o
+              Habitando antes.
             </p>
             <p>
-              Sem precisar criar conta. Sem precisar cadastrar e-mail. O
-              cliente abre o link e pronto.
+              Útil pra mandar pra quem tá comprando junto (parceiro, família)
+              ou pra abrir o cenário do celular depois.
+            </p>
+            <p className="text-[12.5px] text-ink-muted">
+              Limite prático: links com 3-4 cenários ficam em torno de 2 KB.
+              Browsers aguentam tranquilo, mas WhatsApp/SMS podem truncar —
+              nesse caso, cole num e-mail.
             </p>
           </FaqItem>
 
@@ -527,8 +533,9 @@ function Hero() {
         Como o cálculo funciona
       </h1>
       <p className="text-ink-soft text-lg leading-relaxed max-w-2xl mb-3">
-        Esta é a base técnica do simulador — útil para você apresentar com
-        propriedade ao cliente e mostrar o diferencial do{" "}
+        Esta é a base técnica do simulador. Vale a leitura se você quer
+        entender por que a tabela do plantão pode esconder dezenas de milhares
+        de reais em{" "}
         <strong className="text-ink">INCC sobre saldo devedor</strong>{" "}
         (o índice que separa uma simulação honesta da surpresa na entrega).
       </p>
